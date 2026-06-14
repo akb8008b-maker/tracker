@@ -271,48 +271,6 @@
   .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 
-  /* ── Photo Upload ─────────────────────────────── */
-  .photo-upload-area {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 26px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-    position: relative;
-    overflow: hidden;
-    background: var(--bg3);
-  }
-  .photo-upload-area:hover {
-    border-color: var(--accent3);
-    background: var(--bg2);
-    box-shadow: 0 0 20px rgba(192,82,122,0.1);
-  }
-  .photo-upload-area input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .upload-icon { font-size: 34px; margin-bottom: 8px; filter: drop-shadow(0 0 6px rgba(232,130,154,0.4)); }
-  .upload-text { font-size: 13px; color: var(--text3); letter-spacing: 0.3px; }
-  .photo-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    margin-top: 10px;
-  }
-  .photo-preview-grid:empty { display: none; }
-  .photo-preview-grid img {
-    width: 100%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-    box-shadow: 0 4px 12px rgba(192,82,122,0.15);
-  }
-  .photo-preview-grid.single img {
-    aspect-ratio: unset;
-    max-height: 220px;
-    object-fit: cover;
-  }
-
   /* ── Buttons ──────────────────────────────────── */
   .btn {
     display: inline-flex;
@@ -602,22 +560,6 @@
     transform: translateY(-3px);
     border-color: var(--accent3);
     box-shadow: 0 8px 28px rgba(192,82,122,0.15);
-  }
-  .meal-thumb > img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-  .meal-thumb-multigrid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2px;
-  }
-  .meal-thumb-multigrid img {
-    width: 100%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    display: block;
   }
   .meal-thumb-noimg {
     width: 100%;
@@ -1223,16 +1165,6 @@
     <div class="edit-mode-label">✏️ 編集中</div>
     <div class="section-title">食事を記録</div>
     <div class="form-row">
-      <label class="photo-upload-area" id="uploadArea">
-        <input type="file" accept="image/*" id="mealPhoto" onchange="handlePhotoUpload(event)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer">
-        <div id="uploadPlaceholder">
-          <div class="upload-icon">📷</div>
-          <div class="upload-text">タップして写真を追加</div>
-        </div>
-        <div id="photoPreviewGrid" class="photo-preview-grid"></div>
-      </label>
-    </div>
-    <div class="form-row">
       <label>日時</label>
       <div class="form-row-2" style="margin:0">
         <input type="date" id="mealDate">
@@ -1458,8 +1390,6 @@
 <div class="modal-overlay" id="mealModal" onclick="closeMealModal(event)">
   <div class="modal" id="mealModalContent">
     <button class="modal-close" onclick="closeMealModalDirect()">✕</button>
-    <img id="modalImg" src="" alt="">
-    <div id="modalImgGrid" style="display:none;grid-template-columns:repeat(2,1fr);gap:4px;padding:4px;background:#000"></div>
     <div class="modal-body">
       <div class="entry-datetime" id="modalDatetime"></div>
       <div class="entry-sub" id="modalMemo" style="font-size:14px;color:var(--text)"></div>
@@ -1612,7 +1542,6 @@ function getWeekStart() {
 }
 
 // ─── 食事 ──────────────────────────────────────────────
-let currentPhotos = [];
 let isCheat = false;
 let editingMealId = null;
 function toggleCheat() {
@@ -1736,13 +1665,10 @@ function openDayDetail(dateStr) {
   if (meals.length) {
     html += `<div class="day-detail-section"><div class="day-detail-label">🍽 食事（${meals.length}件）</div>`;
     meals.forEach(m => {
-      const ph = m.photos?.length ? m.photos : (m.photo ? [m.photo] : []);
       const time = m.datetime.slice(11,16);
       const cheat = m.cheat ? '👎' : '';
       html += `<div class="day-detail-item">
         <div style="font-size:11px;color:var(--accent);font-weight:700">${time} ${cheat}</div>
-        ${ph.length ? `<img src="${ph[0]}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin:6px 0">` : ''}
-        ${ph.length > 1 ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:6px">${ph.slice(1).map(p=>`<img src="${p}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px">`).join('')}</div>` : ''}
         <div style="font-size:13px;color:var(--text2)">${m.memo || '(メモなし)'}</div>
       </div>`;
     });
@@ -1800,64 +1726,7 @@ function closeDayDetail(e) {
   if (e.target === document.getElementById('dayDetailModal')) document.getElementById('dayDetailModal').classList.remove('open');
 }
 
-let photosReady = true;
-
-function compressImage(dataUrl) {
-  return new Promise(resolve => {
-    try {
-      const image = new Image();
-      image.onload = () => {
-        try {
-          const MAX = 1920;
-          let w = image.width, h = image.height;
-          if (w > MAX || h > MAX) {
-            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-            else { w = Math.round(w * MAX / h); h = MAX; }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(image, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.95));
-        } catch(e) { resolve(dataUrl); }
-      };
-      image.onerror = () => resolve(dataUrl);
-      image.src = dataUrl;
-    } catch(e) { resolve(dataUrl); }
-  });
-}
-
-async function handlePhotoUpload(e) {
-  const files = Array.from(e.target.files).slice(0, 1);
-  if (!files.length) return;
-  currentPhotos = [];
-  photosReady = false;
-  const saveBtn = document.getElementById('mealSaveBtn');
-  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '📷 読み込み中...'; }
-  const grid = document.getElementById('photoPreviewGrid');
-  grid.innerHTML = '';
-  grid.classList.add('single');
-  document.getElementById('uploadPlaceholder').style.display = 'none';
-
-  const dataUrl = await new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = ev => resolve(ev.target.result);
-    reader.onerror = () => resolve(null);
-    reader.readAsDataURL(files[0]);
-  });
-
-  if (dataUrl) {
-    currentPhotos[0] = dataUrl;
-    const img = document.createElement('img');
-    img.src = dataUrl;
-    grid.appendChild(img);
-  }
-
-  photosReady = true;
-  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '＋ 記録する'; }
-}
-
 function saveMeal() {
-  if (!photosReady) { showFlash('写真を処理中です。少し待ってください'); return; }
   const datetime = getDatetime('mealDate', 'mealTime');
   const memo = document.getElementById('mealMemo').value.trim();
   let meals = load('meals');
@@ -1865,14 +1734,13 @@ function saveMeal() {
     const idx = meals.findIndex(m => m.id === editingMealId);
     if (idx !== -1) {
       const existing = meals[idx];
-      const newPhotos = currentPhotos.length > 0 ? [...currentPhotos] : (existing.photos || []);
-      meals[idx] = { ...existing, datetime, memo, photos: newPhotos, cheat: isCheat };
+      meals[idx] = { ...existing, datetime, memo, cheat: isCheat };
     }
     save('meals', meals);
     resetMealForm();
     showFlash('食事を更新しました');
   } else {
-    meals.unshift({ id: uid(), datetime, memo, photos: [...currentPhotos], cheat: isCheat });
+    meals.unshift({ id: uid(), datetime, memo, cheat: isCheat });
     save('meals', meals);
     resetMealForm();
     showFlash('食事を記録しました');
@@ -1885,10 +1753,6 @@ function saveMeal() {
 function resetMealForm() {
   editingMealId = null;
   document.getElementById('mealMemo').value = '';
-  document.getElementById('mealPhoto').value = '';
-  document.getElementById('photoPreviewGrid').innerHTML = '';
-  document.getElementById('uploadPlaceholder').style.display = 'block';
-  currentPhotos = [];
   isCheat = false;
   const btn = document.getElementById('cheatToggle');
   btn.classList.remove('active');
@@ -1922,24 +1786,6 @@ function editMealFromModal() {
   cheatBtn.classList.toggle('active', isCheat);
   cheatBtn.querySelector('.cheat-label').textContent = isCheat ? '今日はやらかした！！（タップで解除）' : 'やらかした…';
 
-  // Show existing photos in preview
-  const ph = m.photos?.length ? m.photos : (m.photo ? [m.photo] : []);
-  const grid = document.getElementById('photoPreviewGrid');
-  grid.innerHTML = '';
-  if (ph.length > 0) {
-    currentPhotos = [...ph];
-    grid.classList.toggle('single', ph.length === 1);
-    ph.forEach(p => {
-      const img = document.createElement('img');
-      img.src = p;
-      grid.appendChild(img);
-    });
-    document.getElementById('uploadPlaceholder').style.display = 'none';
-  } else {
-    currentPhotos = [];
-    document.getElementById('uploadPlaceholder').style.display = 'block';
-  }
-
   // Set edit mode
   editingMealId = modalMealId;
   document.getElementById('mealSaveBtn').textContent = '✏️ 更新する';
@@ -1964,18 +1810,11 @@ function renderMeals() {
   const empty = document.getElementById('mealEmpty');
   if (!meals.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
-  const photos = m => m.photos?.length ? m.photos : (m.photo ? [m.photo] : []);
   grid.innerHTML = meals.map(m => {
-    const ph = photos(m);
-    const imgHtml = ph.length > 1
-      ? `<div class="meal-thumb-multigrid">${ph.map(p => `<img src="${p}" alt="" loading="lazy">`).join('')}</div>`
-      : ph.length === 1
-        ? `<img src="${ph[0]}" alt="" loading="lazy">`
-        : `<div class="meal-thumb-noimg">🍽</div>`;
     return `<div class="meal-thumb" onclick="openMealModal('${m.id}')">
-      ${imgHtml}
+      <div class="meal-thumb-noimg">🍽</div>
       <div class="meal-thumb-info">
-        <div class="meal-thumb-time">${fmtDatetime(m.datetime)}${ph.length > 1 ? ` <span style="color:var(--text3)">📷${ph.length}</span>` : ''}${m.cheat ? '<span class="cheat-badge">👎💔</span>' : ''}</div>
+        <div class="meal-thumb-time">${fmtDatetime(m.datetime)}${m.cheat ? '<span class="cheat-badge">👎💔</span>' : ''}</div>
         <div class="meal-thumb-memo">${m.memo || '(メモなし)'}</div>
       </div>
     </div>`;
@@ -1988,20 +1827,6 @@ function openMealModal(id) {
   const m = meals.find(x => x.id === id);
   if (!m) return;
   modalMealId = id;
-  const ph = m.photos?.length ? m.photos : (m.photo ? [m.photo] : []);
-  const imgEl = document.getElementById('modalImg');
-  if (ph.length === 1) {
-    imgEl.src = ph[0]; imgEl.style.display = 'block';
-    document.getElementById('modalImgGrid').style.display = 'none';
-  } else if (ph.length > 1) {
-    imgEl.style.display = 'none';
-    const g = document.getElementById('modalImgGrid');
-    g.innerHTML = ph.map(p => `<img src="${p}" alt="" style="width:100%;border-radius:4px">`).join('');
-    g.style.display = 'grid';
-  } else {
-    imgEl.style.display = 'none';
-    document.getElementById('modalImgGrid').style.display = 'none';
-  }
   document.getElementById('modalDatetime').textContent = fmtDatetime(m.datetime);
   document.getElementById('modalMemo').textContent = m.memo || '(メモなし)';
   document.getElementById('mealModal').classList.add('open');
@@ -2852,15 +2677,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const d = await fsGet(k);
       if (d && d.items) {
         if (k === 'meals') {
-          // 写真はlocalStorageを優先してマージ
-          const localMeals = load('meals');
-          const localMap = {};
-          localMeals.forEach(m => { localMap[m.id] = m; });
-          const merged = d.items.map(m => {
-            const local = localMap[m.id];
-            return local ? { ...m, photos: local.photos, photo: local.photo } : m;
-          });
-          localStorage.setItem(KEYS[k], JSON.stringify(merged));
+          localStorage.setItem(KEYS[k], JSON.stringify(d.items));
         } else {
           localStorage.setItem(KEYS[k], JSON.stringify(d.items));
         }
