@@ -1827,29 +1827,28 @@ function compressImage(dataUrl) {
 }
 
 async function handlePhotoUpload(e) {
-  const files = Array.from(e.target.files).slice(0, 4);
+  const files = Array.from(e.target.files).slice(0, 1);
   if (!files.length) return;
   currentPhotos = [];
   photosReady = false;
   const saveBtn = document.getElementById('mealSaveBtn');
-  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '📷 処理中...'; }
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '📷 読み込み中...'; }
   const grid = document.getElementById('photoPreviewGrid');
   grid.innerHTML = '';
-  grid.classList.toggle('single', files.length === 1);
+  grid.classList.add('single');
   document.getElementById('uploadPlaceholder').style.display = 'none';
 
-  for (let i = 0; i < files.length; i++) {
-    const dataUrl = await new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = ev => resolve(ev.target.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(files[i]);
-    });
-    if (!dataUrl) continue;
-    const compressed = await compressImage(dataUrl);
-    currentPhotos[i] = compressed;
+  const dataUrl = await new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = ev => resolve(ev.target.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(files[0]);
+  });
+
+  if (dataUrl) {
+    currentPhotos[0] = dataUrl;
     const img = document.createElement('img');
-    img.src = compressed;
+    img.src = dataUrl;
     grid.appendChild(img);
   }
 
