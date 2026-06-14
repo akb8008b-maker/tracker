@@ -1789,15 +1789,30 @@ function handlePhotoUpload(e) {
   grid.innerHTML = '';
   grid.classList.toggle('single', files.length === 1);
   document.getElementById('uploadPlaceholder').style.display = 'none';
-  let loaded = 0;
+  currentPhotos = [];
   files.forEach((file, i) => {
     const reader = new FileReader();
     reader.onload = ev => {
-      currentPhotos[i] = ev.target.result;
-      const img = document.createElement('img');
-      img.src = ev.target.result;
-      grid.appendChild(img);
-      loaded++;
+      const original = ev.target.result;
+      // canvasで圧縮（最大800px, 品質0.7）
+      const image = new Image();
+      image.onload = () => {
+        const MAX = 800;
+        let w = image.width, h = image.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+        const compressed = canvas.toDataURL('image/jpeg', 0.7);
+        currentPhotos[i] = compressed;
+        const img = document.createElement('img');
+        img.src = compressed;
+        grid.appendChild(img);
+      };
+      image.src = original;
     };
     reader.readAsDataURL(file);
   });
