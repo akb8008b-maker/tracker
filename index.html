@@ -2850,7 +2850,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const keys = ['meals','weights','training','cardio','memos'];
     await Promise.all(keys.map(async k => {
       const d = await fsGet(k);
-      if (d && d.items) localStorage.setItem(KEYS[k], JSON.stringify(d.items));
+      if (d && d.items) {
+        if (k === 'meals') {
+          // 写真はlocalStorageを優先してマージ
+          const localMeals = load('meals');
+          const localMap = {};
+          localMeals.forEach(m => { localMap[m.id] = m; });
+          const merged = d.items.map(m => {
+            const local = localMap[m.id];
+            return local ? { ...m, photos: local.photos, photo: local.photo } : m;
+          });
+          localStorage.setItem(KEYS[k], JSON.stringify(merged));
+        } else {
+          localStorage.setItem(KEYS[k], JSON.stringify(d.items));
+        }
+      }
     }));
     const s = await fsGet('settings');
     if (s) {
