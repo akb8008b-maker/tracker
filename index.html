@@ -1,0 +1,2733 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コンペ準備トラッカー</title>
+<style>
+  :root {
+    --bg: #fff0f5;
+    --bg2: #fce4ec;
+    --bg3: #ffeef4;
+    --card: #ffffff;
+    --card2: #fdf0f5;
+    --border: #f4c2d4;
+    --border2: #e8a0b8;
+    --accent: #c0527a;
+    --accent2: #a0406a;
+    --accent3: #e8829a;
+    --accent-glow: rgba(192,82,122,0.22);
+    --blue: #9090e0;
+    --blue-dim: rgba(144,144,224,0.12);
+    --blue-border: rgba(144,144,224,0.28);
+    --text: #3d1a27;
+    --text2: #8a5068;
+    --text3: #b07890;
+    --red: #e05070;
+    --green: #60b080;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ───────────────────────────────────── */
+  .app-header {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+    border-bottom: none;
+    padding: 16px 18px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(192,82,122,0.12);
+  }
+  .app-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 3px;
+    opacity: 0.9;
+  }
+  .app-subtitle {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+  }
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  /* ── Countdown Hero ───────────────────────────── */
+  .countdown-box {
+    text-align: right;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 8px 16px 8px 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);
+    border: 1.5px solid #e8a020;
+    position: relative;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(232,160,32,0.2);
+  }
+  .countdown-box:hover {
+    border-color: #c8700a;
+    box-shadow: 0 6px 28px rgba(232,160,32,0.35);
+  }
+  .countdown-days {
+    font-size: 44px;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(160deg, #e8a020 0%, #c8700a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 1px 4px rgba(200,112,10,0.3));
+    letter-spacing: -1px;
+  }
+  .countdown-label {
+    font-size: 9px;
+    color: #b07828;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .countdown-set {
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* ── Countdown Modal ──────────────────────────── */
+  .countdown-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(61,26,39,0.35);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .countdown-modal.open { display: flex; }
+  .countdown-modal-inner {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 22px;
+    width: 90%;
+    max-width: 340px;
+    box-shadow: 0 24px 60px rgba(192,82,122,0.18);
+  }
+  .countdown-modal-title {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Stats Bar ────────────────────────────────── */
+  .stats-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .stats-bar::-webkit-scrollbar { display: none; }
+  .stat-item {
+    flex: 0 0 auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent3);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 94px;
+    box-shadow: 0 2px 12px rgba(192,82,122,0.07);
+  }
+  .stat-val {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+  .stat-label {
+    font-size: 9px;
+    color: var(--text3);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── Tabs ─────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 80px;
+    z-index: 99;
+  }
+  .tab {
+    flex: 1;
+    padding: 11px 4px 10px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    user-select: none;
+  }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    text-shadow: none;
+  }
+  .tab:hover:not(.active) { color: var(--text2); }
+  .tab-icon { font-size: 15px; display: block; margin-bottom: 3px; }
+
+  /* ── Panels ───────────────────────────────────── */
+  .panel { display: none; padding: 18px 16px; padding-bottom: 40px; }
+  .panel.active { display: block; }
+
+  /* ── Section Heading ──────────────────────────── */
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    opacity: 0.9;
+  }
+
+  /* ── Form Card ────────────────────────────────── */
+  .form-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 16px rgba(192,82,122,0.08);
+  }
+  .form-row { margin-bottom: 14px; }
+  .form-row:last-child { margin-bottom: 0; }
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 1.2px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  input[type=text], input[type=number], input[type=datetime-local],
+  input[type=date], textarea, select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 15px;
+    padding: 11px 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(192,82,122,0.1);
+  }
+  textarea { resize: vertical; min-height: 72px; }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23b07890'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 34px; }
+
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  /* ── Photo Upload ─────────────────────────────── */
+  .photo-upload-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 26px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg3);
+  }
+  .photo-upload-area:hover {
+    border-color: var(--accent3);
+    background: var(--bg2);
+    box-shadow: 0 0 20px rgba(192,82,122,0.1);
+  }
+  .photo-upload-area input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-icon { font-size: 34px; margin-bottom: 8px; filter: drop-shadow(0 0 6px rgba(232,130,154,0.4)); }
+  .upload-text { font-size: 13px; color: var(--text3); letter-spacing: 0.3px; }
+  .photo-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .photo-preview-grid:empty { display: none; }
+  .photo-preview-grid img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 12px rgba(192,82,122,0.15);
+  }
+  .photo-preview-grid.single img {
+    aspect-ratio: unset;
+    max-height: 220px;
+    object-fit: cover;
+  }
+
+  /* ── Buttons ──────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 22px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #e8829a 0%, #c0527a 100%);
+    color: #fff;
+    width: 100%;
+    font-size: 14px;
+    padding: 14px;
+    letter-spacing: 0.8px;
+    box-shadow: 0 4px 16px rgba(192,82,122,0.3);
+    border-radius: 50px;
+  }
+  .btn-primary:hover { box-shadow: 0 6px 24px rgba(192,82,122,0.42); filter: brightness(1.04); }
+  .btn-primary:active { transform: scale(0.98); box-shadow: 0 2px 10px rgba(192,82,122,0.2); }
+  .btn-danger {
+    background: transparent;
+    border: 1px solid rgba(224,80,112,0.35);
+    color: var(--red);
+    padding: 5px 12px;
+    font-size: 11px;
+    border-radius: 20px;
+  }
+  .btn-danger:hover { background: rgba(224,80,112,0.08); border-color: var(--red); }
+  .btn-edit {
+    background: transparent;
+    border: 1px solid rgba(192,82,122,0.35);
+    color: var(--accent);
+    padding: 5px 12px;
+    font-size: 11px;
+    border-radius: 20px;
+  }
+  .btn-edit:hover { background: rgba(192,82,122,0.08); border-color: var(--accent); }
+
+  /* Edit mode styles */
+  .form-card.editing {
+    border-left: 3px solid var(--accent);
+    box-shadow: 0 4px 24px rgba(192,82,122,0.12), 0 0 0 1px rgba(192,82,122,0.08);
+  }
+  .edit-mode-label {
+    display: none;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    background: rgba(192,82,122,0.07);
+    border: 1px solid rgba(192,82,122,0.25);
+    border-radius: 20px;
+    text-align: center;
+  }
+  .form-card.editing .edit-mode-label { display: block; }
+  .cancel-edit-link {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 8px;
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    font-family: inherit;
+    width: 100%;
+  }
+  .cancel-edit-link:hover { color: var(--text2); }
+
+  /* ── Entry List ───────────────────────────────── */
+  .entries-list { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Calendar */
+  .meal-calendar-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 16px rgba(192,82,122,0.07);
+  }
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .cal-month-label {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+  .cal-nav {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .cal-nav:hover { border-color: var(--accent3); color: var(--accent); background: var(--bg2); }
+  .cal-dow-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 6px;
+  }
+  .cal-dow-row span {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 0.5px;
+    padding: 4px 0;
+  }
+  .cal-dow-row span:first-child { color: #e05070; }
+  .cal-dow-row span:last-child { color: #9090e0; }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+    gap: 2px;
+  }
+  .cal-day:hover:not(.empty) { background: var(--bg2); }
+  .cal-day.empty { cursor: default; pointer-events: none; }
+  .cal-day.today { color: var(--accent); font-weight: 800; }
+  .cal-day.has-meal { color: var(--text); }
+  .cal-dot { display: none; }
+  .cal-day.has-meal .cal-dot {
+    display: flex;
+    gap: 2px;
+  }
+  .cal-dot span {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: block;
+  }
+  .cal-day.selected {
+    background: var(--accent) !important;
+    color: #fff !important;
+    font-weight: 900;
+  }
+  .cal-day.selected .cal-dot span { background: #fff; }
+  .cal-day.sunday:not(.selected) { color: #e05070; }
+  .cal-day.saturday:not(.selected) { color: #9090e0; }
+  /* やらかした日：数字を赤く */
+  .cal-day.cheat-day:not(.selected) .cal-day-num { color: #e84040 !important; font-weight: 900; }
+  .cal-cheat-icon { font-size: 9px; margin-left: 1px; vertical-align: middle; }
+  /* パーソナルトレーニング：rose背景 */
+  .cal-day.train-personal:not(.selected) { background: rgba(232,160,32,0.15); }
+  /* 自主トレ：lavender背景 */
+  .cal-day.train-solo:not(.selected) { background: rgba(144,144,224,0.12); }
+  /* 両方ある日：半々グラデ */
+  .cal-day.train-both:not(.selected) { background: linear-gradient(135deg, rgba(232,160,32,0.15) 50%, rgba(144,144,224,0.12) 50%); }
+  /* 日別詳細モーダル */
+  .day-detail-section { margin-bottom: 18px; }
+  .day-detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .day-detail-item {
+    background: var(--bg3);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 7px;
+    border: 1px solid var(--border);
+  }
+
+  .meal-filter-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(192,82,122,0.08);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 14px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .meal-filter-banner button {
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* Cheat toggle */
+  .cheat-toggle {
+    width: 100%;
+    padding: 11px;
+    background: var(--bg3);
+    border: 1px dashed var(--border);
+    border-radius: 50px;
+    color: var(--text3);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .cheat-toggle:hover { border-color: var(--red); color: var(--red); background: rgba(224,80,112,0.04); }
+  .cheat-toggle.active {
+    background: rgba(224,80,112,0.1);
+    border: 2px solid var(--red);
+    color: var(--red);
+    box-shadow: 0 0 18px rgba(224,80,112,0.2), inset 0 0 10px rgba(224,80,112,0.06);
+    font-size: 15px;
+    animation: cheat-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes cheat-pulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(224,80,112,0.2), inset 0 0 10px rgba(224,80,112,0.06); }
+    50% { box-shadow: 0 0 24px rgba(224,80,112,0.38), inset 0 0 14px rgba(224,80,112,0.1); }
+  }
+  .cheat-icon { font-size: 20px; }
+  .cheat-badge {
+    display: inline-block;
+    font-size: 16px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .cal-day .cal-cheat {
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  /* ── Meal Grid ────────────────────────────────── */
+  .meal-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .meal-thumb {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+    box-shadow: 0 2px 12px rgba(192,82,122,0.08);
+  }
+  .meal-thumb:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent3);
+    box-shadow: 0 8px 28px rgba(192,82,122,0.15);
+  }
+  .meal-thumb > img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .meal-thumb-multigrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+  }
+  .meal-thumb-multigrid img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+  }
+  .meal-thumb-noimg {
+    width: 100%;
+    height: 110px;
+    background: linear-gradient(160deg, var(--bg3) 0%, var(--bg2) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+  }
+  .meal-thumb-info { padding: 10px 12px 10px; }
+  .meal-thumb-time { font-size: 10px; color: var(--accent); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+  .meal-thumb-memo { font-size: 12px; color: var(--text2); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── Entry Card ───────────────────────────────── */
+  .entry-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent3);
+    border-radius: var(--radius);
+    padding: 13px 14px 13px 16px;
+    position: relative;
+    box-shadow: 0 2px 12px rgba(192,82,122,0.07);
+    transition: box-shadow 0.18s, border-color 0.18s;
+  }
+  .entry-card:hover {
+    box-shadow: 0 4px 20px rgba(192,82,122,0.12);
+    border-left-color: var(--accent);
+  }
+  .entry-datetime {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  .entry-main {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .entry-sub {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  .entry-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .tag {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .tag.accent {
+    border-color: var(--border2);
+    color: var(--accent);
+    background: var(--bg2);
+  }
+  .entry-delete {
+    position: absolute;
+    top: 11px; right: 12px;
+  }
+
+  /* ── Weight Chart ─────────────────────────────── */
+  .chart-container {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 16px rgba(192,82,122,0.08);
+  }
+  .chart-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  svg.weight-chart { width: 100%; overflow: visible; }
+  .chart-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .chart-area { fill: url(#chartGradient); }
+  .chart-dot { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
+  .chart-grid line { stroke: var(--border); stroke-dasharray: 3,3; }
+  .chart-label { fill: var(--text3); font-size: 10px; font-family: -apple-system, sans-serif; }
+  .chart-axis { stroke: var(--border); }
+
+  /* ── Modal ────────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(61,26,39,0.35);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-width: 420px;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(192,82,122,0.2);
+  }
+  .modal img {
+    width: 100%;
+    max-height: 55vh;
+    object-fit: contain;
+    background: var(--bg3);
+  }
+  .modal-body { padding: 18px; }
+  .modal-close {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 14px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--bg2); color: var(--accent); }
+
+  /* ── Empty State ──────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text3);
+  }
+  .empty-icon {
+    font-size: 38px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+    filter: grayscale(0.4);
+  }
+  .empty-text {
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    line-height: 1.6;
+  }
+
+  /* ── Weight Display ───────────────────────────── */
+  .weight-today {
+    text-align: center;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 20px 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 24px rgba(192,82,122,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .weight-today::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent3), var(--accent), var(--accent3), transparent);
+    opacity: 0.8;
+  }
+  .weight-today-label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .weight-today-val {
+    font-size: 68px;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(160deg, #e8829a 0%, #c0527a 60%, #a0406a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 12px rgba(192,82,122,0.3));
+    letter-spacing: -2px;
+  }
+  .weight-today-unit {
+    font-size: 16px;
+    color: var(--text3);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+  .weight-change {
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+  }
+  .weight-change.up { color: var(--red); }
+  .weight-change.down { color: var(--green); }
+
+  /* ── Training Sets ────────────────────────────── */
+  .set-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 1fr;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .set-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    text-align: center;
+    padding-top: 10px;
+  }
+  .sets-header {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .sets-header span {
+    font-size: 10px;
+    color: var(--text3);
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  .sets-header span:first-child { text-align: left; }
+  /* トレーニング種別ボタン */
+  .train-type-btn {
+    flex: 1;
+    padding: 9px 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    color: var(--text3);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .train-type-btn.active#typeBtnPersonal {
+    background: rgba(232,160,32,0.14);
+    border-color: #d4a020;
+    color: #b07000;
+    box-shadow: 0 0 10px rgba(212,160,32,0.18);
+  }
+  .train-type-btn.active#typeBtnSolo {
+    background: rgba(144,144,224,0.15);
+    border-color: #9090e0;
+    color: #6060c0;
+    box-shadow: 0 0 10px rgba(144,144,224,0.2);
+  }
+
+  /* ── Trainer Memo ─────────────────────────────── */
+  .memo-cat-btn {
+    padding: 7px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    color: var(--text3);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .memo-cat-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .memo-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 12px rgba(192,82,122,0.06);
+  }
+  .memo-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .memo-cat-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 50px;
+    border: 1px solid;
+    letter-spacing: 0.3px;
+  }
+  .memo-period {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  .memo-content {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+
+  .btn-add-set {
+    background: transparent;
+    border: 1px dashed var(--border2);
+    color: var(--text3);
+    font-size: 12px;
+    padding: 8px;
+    border-radius: 50px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 4px;
+    font-family: inherit;
+    transition: all 0.18s;
+    letter-spacing: 0.3px;
+  }
+  .btn-add-set:hover { border-color: var(--accent3); color: var(--accent); background: rgba(192,82,122,0.04); }
+  .btn-remove-set {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+  .btn-remove-set:hover { color: var(--red); }
+  .set-row input { text-align: center; }
+
+  /* ── Intensity Buttons ────────────────────────── */
+  .intensity-btns { display: flex; gap: 6px; }
+  .intensity-btn {
+    flex: 1;
+    padding: 10px 4px;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text3);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.18s;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+  }
+  .intensity-btn.selected {
+    border-color: var(--accent3);
+    color: var(--accent);
+    background: rgba(192,82,122,0.08);
+    box-shadow: 0 0 10px rgba(192,82,122,0.1);
+  }
+
+  /* ── Exercise Entry ───────────────────────────── */
+  .exercise-entry {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blue);
+    border-radius: var(--radius);
+    padding: 13px 14px 13px 16px;
+    margin-bottom: 10px;
+    position: relative;
+    box-shadow: 0 2px 12px rgba(144,144,224,0.1);
+  }
+  .exercise-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 7px;
+    letter-spacing: 0.2px;
+  }
+  .sets-display { display: flex; flex-wrap: wrap; gap: 5px; }
+  .set-badge {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+  }
+
+  /* ── Part Buttons ─────────────────────────────── */
+  .part-btn {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .part-btn:hover { border-color: var(--accent3); color: var(--accent); background: var(--bg3); }
+  .part-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Part Tags (in log cards) ──────────────────── */
+  .part-tag {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    margin-right: 4px;
+    margin-top: 2px;
+  }
+
+  /* ── Target Weight Display ─────────────────────── */
+  .target-weight-line {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 6px;
+  }
+  .target-weight-line strong {
+    color: var(--accent);
+    font-size: 15px;
+  }
+  .target-achieved {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--green);
+    margin-top: 6px;
+  }
+
+  /* ── Calendar enhanced ─────────────────────────── */
+  .cal-day {
+    aspect-ratio: unset;
+    min-height: 56px;
+    padding: 4px 2px;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .cal-weight-val {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+  .cal-parts-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    width: 100%;
+  }
+  .cal-part-chip {
+    font-size: 8px;
+    font-weight: 700;
+    border-radius: 3px;
+    padding: 1px 2px;
+    color: #000;
+    line-height: 1.2;
+  }
+  .cal-day-num {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    width: 100%;
+    text-align: center;
+  }
+  .cal-dot-row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ── Scrollbar ────────────────────────────────── */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--accent3); border-radius: 2px; }
+
+  @media (max-width: 360px) {
+    .form-row-3 { grid-template-columns: 1fr 1fr; }
+    .meal-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .countdown-days { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-title">COMPETITION PREP</div>
+  <div class="header-row">
+    <div class="app-subtitle">コンペ準備トラッカー</div>
+    <div class="countdown-box" onclick="openCountdownModal()">
+      <div class="countdown-days" id="countdownDays">－</div>
+      <div class="countdown-label" id="countdownLabel">大会まで</div>
+    </div>
+  </div>
+</div>
+
+<!-- 日別詳細モーダル -->
+<div class="modal-overlay" id="dayDetailModal" onclick="closeDayDetail(event)">
+  <div class="modal" id="dayDetailContent" style="max-width:460px;max-height:85vh;overflow-y:auto">
+    <button class="modal-close" onclick="document.getElementById('dayDetailModal').classList.remove('open')">✕</button>
+    <div class="modal-body">
+      <div id="dayDetailTitle" style="font-size:16px;font-weight:800;color:var(--accent);margin-bottom:16px"></div>
+      <div id="dayDetailBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- カウントダウン設定モーダル -->
+<div class="countdown-modal" id="countdownModal">
+  <div class="countdown-modal-inner">
+    <div class="countdown-modal-title">🏆 大会日を設定</div>
+    <div class="form-row">
+      <label>大会日</label>
+      <input type="date" id="competitionDate">
+    </div>
+    <div class="form-row">
+      <label>大会名（任意）</label>
+      <input type="text" id="competitionName" placeholder="例: ○○選手権">
+    </div>
+    <div class="form-row" style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveCompetitionDate()">設定する</button>
+      <button class="btn" style="flex:1;background:var(--bg3);color:var(--text2)" onclick="closeCountdownModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-item">
+    <div class="stat-val" id="statMeals">0</div>
+    <div class="stat-label">本日の食事</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val" id="statWeight">―</div>
+    <div class="stat-label">本日の体重</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val" id="statTraining">0</div>
+    <div class="stat-label">今週の筋トレ</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val" id="statCardio">0</div>
+    <div class="stat-label">今週の有酸素</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('calendar')">
+    <span class="tab-icon">📅</span>カレンダー
+  </div>
+  <div class="tab" onclick="switchTab('shokuji')">
+    <span class="tab-icon">🍽</span>食事
+  </div>
+  <div class="tab" onclick="switchTab('taiju')">
+    <span class="tab-icon">⚖️</span>体重
+  </div>
+  <div class="tab" onclick="switchTab('kintore')">
+    <span class="tab-icon">💪</span>筋トレ
+  </div>
+  <div class="tab" onclick="switchTab('yusanso')">
+    <span class="tab-icon">🏃</span>有酸素
+  </div>
+  <div class="tab" onclick="switchTab('memo')">
+    <span class="tab-icon">📝</span>メモ
+  </div>
+</div>
+
+<!-- カレンダーパネル -->
+<div class="panel active" id="panel-calendar">
+  <div class="meal-calendar-card" style="margin-bottom:0">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calNav(-1)">‹</button>
+      <div class="cal-month-label" id="calMonthLabel"></div>
+      <button class="cal-nav" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-dow-row">
+      <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</div>
+
+<!-- 食事パネル -->
+<div class="panel" id="panel-shokuji">
+  <div class="form-card" id="mealFormCard">
+    <div class="edit-mode-label">✏️ 編集中</div>
+    <div class="section-title">食事を記録</div>
+    <div class="form-row">
+      <label class="photo-upload-area" id="uploadArea">
+        <input type="file" accept="image/*" multiple id="mealPhoto" onchange="handlePhotoUpload(event)" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+        <div id="uploadPlaceholder">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">タップして写真を追加（最大4枚）</div>
+        </div>
+        <div id="photoPreviewGrid" class="photo-preview-grid"></div>
+      </label>
+    </div>
+    <div class="form-row">
+      <label>日時</label>
+      <div class="form-row-2" style="margin:0">
+        <input type="date" id="mealDate">
+        <select id="mealTime"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>メモ</label>
+      <textarea id="mealMemo" placeholder="食事の内容、カロリーなど..."></textarea>
+    </div>
+    <div class="form-row">
+      <button class="cheat-toggle" id="cheatToggle" onclick="toggleCheat()">
+        <span class="cheat-icon">👎💔</span>
+        <span class="cheat-label">やらかした…</span>
+      </button>
+    </div>
+    <div class="form-row">
+      <button class="btn btn-primary" id="mealSaveBtn" onclick="saveMeal()">＋ 記録する</button>
+      <button class="cancel-edit-link" id="mealCancelBtn" style="display:none" onclick="cancelEditMeal()">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="section-title">食事ログ</div>
+  <div id="mealGrid" class="meal-grid"></div>
+  <div id="mealEmpty" class="empty-state" style="display:none">
+    <div class="empty-icon">🍽</div>
+    <div class="empty-text">まだ食事が記録されていません</div>
+  </div>
+</div>
+
+<!-- 体重パネル -->
+<div class="panel" id="panel-taiju">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--text3);text-transform:uppercase">目標体重</div>
+    <button id="targetWeightBtn" onclick="openTargetWeightInput()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:11px;padding:4px 10px;cursor:pointer;font-family:inherit;transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">目標体重を設定</button>
+  </div>
+  <div id="targetWeightInputArea" style="display:none;margin-bottom:12px">
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="number" id="targetWeightInput" step="0.1" min="30" max="200" placeholder="目標体重 (kg)" style="flex:1;margin:0">
+      <button onclick="saveTargetWeight()" class="btn btn-primary" style="width:auto;padding:11px 16px;flex-shrink:0">設定</button>
+      <button onclick="closeTargetWeightInput()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px">✕</button>
+    </div>
+  </div>
+  <div class="weight-today">
+    <div class="weight-today-label">本日の体重</div>
+    <div class="weight-today-val" id="todayWeightVal">―</div>
+    <div class="weight-today-unit">kg</div>
+    <div class="weight-change" id="weightChange"></div>
+    <div id="targetWeightDisplay" style="margin-top:8px;font-size:13px;color:var(--text2)"></div>
+  </div>
+
+  <div class="form-card" id="weightFormCard">
+    <div class="edit-mode-label">✏️ 編集中</div>
+    <div class="section-title">体重を記録</div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin:0">
+        <label>日付</label>
+        <input type="date" id="weightDate">
+      </div>
+      <div class="form-row" style="margin:0">
+        <label>体重 (kg)</label>
+        <input type="number" id="weightVal" step="0.1" min="30" max="200" placeholder="68.5">
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:12px">
+      <button class="btn btn-primary" id="weightSaveBtn" onclick="saveWeight()">＋ 記録する</button>
+      <button class="cancel-edit-link" id="weightCancelBtn" style="display:none" onclick="cancelEditWeight()">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <div class="chart-title">過去30日間の体重推移</div>
+    <svg class="weight-chart" id="weightChart" height="160"></svg>
+  </div>
+
+  <div class="section-title">体重ログ</div>
+  <div id="weightList" class="entries-list"></div>
+  <div id="weightEmpty" class="empty-state" style="display:none">
+    <div class="empty-icon">⚖️</div>
+    <div class="empty-text">まだ体重が記録されていません</div>
+  </div>
+</div>
+
+<!-- 筋トレパネル -->
+<div class="panel" id="panel-kintore">
+  <div class="form-card" id="trainFormCard">
+    <div class="edit-mode-label">✏️ 編集中</div>
+    <div class="section-title">筋トレを記録</div>
+    <div class="form-row">
+      <label>日時</label>
+      <div class="form-row-2" style="margin:0">
+        <input type="date" id="trainDate">
+        <select id="trainTime"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>トレーニング種別</label>
+      <div style="display:flex;gap:8px">
+        <button class="train-type-btn active" id="typeBtnPersonal" onclick="setTrainType('personal')">👤 パーソナル</button>
+        <button class="train-type-btn" id="typeBtnSolo" onclick="setTrainType('solo')">💪 自主トレ</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>部位を選択</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="partsButtons">
+        <button class="part-btn" onclick="togglePart('脚')" style="--part-color:#e87070">脚</button>
+        <button class="part-btn" onclick="togglePart('尻')" style="--part-color:#f59e9e">尻</button>
+        <button class="part-btn" onclick="togglePart('肩')" style="--part-color:#4fc3f7">肩</button>
+        <button class="part-btn" onclick="togglePart('背中')" style="--part-color:#4dd88a">背中</button>
+        <button class="part-btn" onclick="togglePart('胸')" style="--part-color:#e8a020">胸</button>
+        <button class="part-btn" onclick="togglePart('腕')" style="--part-color:#c084fc">腕</button>
+        <button class="part-btn" onclick="togglePart('腹筋')" style="--part-color:#fbbf24">腹筋</button>
+      </div>
+    </div>
+    <div id="partSectionsContainer"></div>
+    <div class="form-row">
+      <label>メモ</label>
+      <textarea id="trainMemo" placeholder="フォーム、感覚など..."></textarea>
+    </div>
+    <div class="form-row">
+      <button class="btn btn-primary" id="trainSaveBtn" onclick="saveTraining()">＋ 記録する</button>
+      <button class="cancel-edit-link" id="trainCancelBtn" style="display:none" onclick="cancelEditTraining()">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="section-title">筋トレログ</div>
+  <div id="trainingList" class="entries-list"></div>
+  <div id="trainingEmpty" class="empty-state" style="display:none">
+    <div class="empty-icon">💪</div>
+    <div class="empty-text">まだ筋トレが記録されていません</div>
+  </div>
+</div>
+
+<!-- 有酸素パネル -->
+<div class="panel" id="panel-yusanso">
+  <div class="form-card" id="cardioFormCard">
+    <div class="edit-mode-label">✏️ 編集中</div>
+    <div class="section-title">有酸素を記録</div>
+    <div class="form-row">
+      <label>日時</label>
+      <div class="form-row-2" style="margin:0">
+        <input type="date" id="cardioDate">
+        <select id="cardioTime"></select>
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin:0">
+        <label>種類</label>
+        <input type="text" id="cardioType" placeholder="例: ランニング、バイクなど">
+      </div>
+      <div class="form-row" style="margin:0">
+        <label>時間 (分)</label>
+        <input type="number" id="cardioDuration" min="1" max="300" placeholder="45">
+      </div>
+    </div>
+    <div class="form-row">
+      <label>強度</label>
+      <div class="intensity-btns" id="intensityBtns">
+        <button class="intensity-btn" onclick="selectIntensity(this,'低')">低</button>
+        <button class="intensity-btn" onclick="selectIntensity(this,'中')">中</button>
+        <button class="intensity-btn" onclick="selectIntensity(this,'高')">高</button>
+        <button class="intensity-btn selected" onclick="selectIntensity(this,'LISS')">LISS</button>
+        <button class="intensity-btn" onclick="selectIntensity(this,'HIIT')">HIIT</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>メモ</label>
+      <textarea id="cardioMemo" placeholder="心拍数、場所、感想など..."></textarea>
+    </div>
+    <div class="form-row">
+      <button class="btn btn-primary" id="cardioSaveBtn" onclick="saveCardio()">＋ 記録する</button>
+      <button class="cancel-edit-link" id="cardioCancelBtn" style="display:none" onclick="cancelEditCardio()">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="section-title">有酸素ログ</div>
+  <div id="cardioList" class="entries-list"></div>
+  <div id="cardioEmpty" class="empty-state" style="display:none">
+    <div class="empty-icon">🏃</div>
+    <div class="empty-text">まだ有酸素が記録されていません</div>
+  </div>
+</div>
+
+<!-- トレーナーメモパネル -->
+<div class="panel" id="panel-memo">
+  <div class="form-card" id="memoFormCard">
+    <div class="edit-mode-label" id="memoEditLabel">✏️ 編集中</div>
+    <div class="section-title">トレーナーメモ</div>
+    <div class="form-row">
+      <label class="form-label">日付</label>
+      <input type="date" id="memoDate">
+    </div>
+    <div class="form-row">
+      <textarea id="memoContent" placeholder="例: 米100g、鶏むね150g、野菜は自由&#10;例: スクワットは膝がつま先より前に出ないように" style="min-height:120px"></textarea>
+    </div>
+    <div class="form-row">
+      <button class="btn btn-primary" id="memoSaveBtn" onclick="saveMemoNote()">＋ 追加する</button>
+      <button class="cancel-edit-link" id="memoCancelBtn" style="display:none" onclick="cancelEditMemo()">キャンセル</button>
+    </div>
+  </div>
+
+  <div id="memoList" class="entries-list"></div>
+  <div id="memoEmpty" class="empty-state" style="display:none">
+    <div class="empty-icon">📝</div>
+    <div class="empty-text">メモがありません</div>
+  </div>
+</div>
+
+<!-- Meal Modal -->
+<div class="modal-overlay" id="mealModal" onclick="closeMealModal(event)">
+  <div class="modal" id="mealModalContent">
+    <button class="modal-close" onclick="closeMealModalDirect()">✕</button>
+    <img id="modalImg" src="" alt="">
+    <div id="modalImgGrid" style="display:none;grid-template-columns:repeat(2,1fr);gap:4px;padding:4px;background:#000"></div>
+    <div class="modal-body">
+      <div class="entry-datetime" id="modalDatetime"></div>
+      <div class="entry-sub" id="modalMemo" style="font-size:14px;color:var(--text)"></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-edit" onclick="editMealFromModal()">✏️ 編集</button>
+        <button class="btn btn-danger" id="modalDeleteBtn" onclick="deleteMealFromModal()">削除する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Storage ───────────────────────────────────────────
+const KEYS = { meals:'cptrk_meals', weights:'cptrk_weights', training:'cptrk_training', cardio:'cptrk_cardio', memos:'cptrk_memos' };
+const TARGET_WEIGHT_KEY = 'cptrk_targetWeight';
+const load = k => JSON.parse(localStorage.getItem(KEYS[k]) || '[]');
+const save = (k,v) => localStorage.setItem(KEYS[k], JSON.stringify(v));
+
+// ─── Utils ─────────────────────────────────────────────
+const pad = n => String(n).padStart(2,'0');
+const nowLocal = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+const buildTimeSelect = (selectEl, defaultTime) => {
+  selectEl.innerHTML = '';
+  for (let h = 0; h < 24; h++) {
+    for (let m of [0]) {
+      const val = `${pad(h)}:${pad(m)}`;
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      if (val === defaultTime) opt.selected = true;
+      selectEl.appendChild(opt);
+    }
+  }
+};
+const roundTo30 = () => {
+  const d = new Date();
+  return `${pad(d.getHours())}:00`;
+};
+const getDatetime = (dateId, timeId) => {
+  const date = document.getElementById(dateId).value || todayStr();
+  const time = document.getElementById(timeId).value || roundTo30();
+  return `${date}T${time}`;
+};
+const todayStr = () => nowLocal().slice(0,10);
+const fmtDatetime = iso => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+const fmtDate = iso => {
+  if (!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+};
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+const confirm_ja = msg => window.confirm(msg);
+
+// ─── Tabs ──────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const idx = ['calendar','shokuji','taiju','kintore','yusanso','memo'].indexOf(name);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name === 'taiju') renderWeightChart();
+  if (name === 'memo') renderMemoNotes();
+}
+
+// ─── Stats ─────────────────────────────────────────────
+function updateStats() {
+  const today = todayStr();
+  const meals = load('meals');
+  const weights = load('weights');
+  const training = load('training');
+  const cardio = load('cardio');
+
+  // meal count today
+  const mealCount = meals.filter(m => m.datetime.startsWith(today)).length;
+  document.getElementById('statMeals').textContent = mealCount;
+
+  // today weight
+  const todayW = weights.filter(w => w.date === today);
+  if (todayW.length) {
+    const w = todayW[todayW.length-1].weight;
+    document.getElementById('statWeight').textContent = w;
+    document.getElementById('todayWeightVal').textContent = w;
+    // change from previous
+    const sorted = [...weights].sort((a,b)=>a.date.localeCompare(b.date));
+    const idx = sorted.findLastIndex(w2 => w2.date === today);
+    const prev = sorted.slice(0, idx).reverse().find(w2 => w2.date !== today);
+    const changeEl = document.getElementById('weightChange');
+    if (prev) {
+      const diff = (parseFloat(w) - parseFloat(prev.weight)).toFixed(1);
+      changeEl.textContent = (diff > 0 ? '▲ +' : '▼ ') + diff + ' kg';
+      changeEl.className = 'weight-change ' + (diff > 0 ? 'up' : 'down');
+    } else { changeEl.textContent = ''; }
+  } else {
+    document.getElementById('statWeight').textContent = '―';
+    document.getElementById('todayWeightVal').textContent = '―';
+    document.getElementById('weightChange').textContent = '';
+  }
+  updateTargetWeightDisplay();
+
+  // this week training
+  const weekStart = getWeekStart();
+  const trainCount = training.filter(t => t.datetime.slice(0,10) >= weekStart).length;
+  document.getElementById('statTraining').textContent = trainCount;
+
+  const cardioCount = cardio.filter(c => c.datetime.slice(0,10) >= weekStart).length;
+  document.getElementById('statCardio').textContent = cardioCount;
+}
+
+function getWeekStart() {
+  const d = new Date();
+  const day = d.getDay(); // 0=sun
+  const diff = day === 0 ? 6 : day - 1;
+  d.setDate(d.getDate() - diff);
+  return d.toISOString().slice(0,10);
+}
+
+// ─── 食事 ──────────────────────────────────────────────
+let currentPhotos = [];
+let isCheat = false;
+let editingMealId = null;
+function toggleCheat() {
+  isCheat = !isCheat;
+  const btn = document.getElementById('cheatToggle');
+  btn.classList.toggle('active', isCheat);
+  btn.querySelector('.cheat-label').textContent = isCheat ? '今日はやらかした！！（タップで解除）' : 'やらかした…';
+}
+
+// ─── Calendar ──────────────────────────────────────────
+let calYear, calMonth, mealFilterDate = null;
+function initCalendar() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCalendar();
+}
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+function renderCalendar() {
+  const meals = load('meals');
+  const mealDates = {};
+  const cheatDates = new Set();
+  meals.forEach(m => {
+    const d = m.datetime.slice(0, 10);
+    mealDates[d] = (mealDates[d] || 0) + 1;
+    if (m.cheat) cheatDates.add(d);
+  });
+
+  // Weight map
+  const weights = load('weights');
+  const weightMap = {};
+  weights.forEach(w => { weightMap[w.date] = w.weight; });
+
+  // Training parts map + type map
+  const training = load('training');
+  const trainPartsMap = {};
+  const trainTypeMap = {}; // 'personal' | 'solo' | 'both'
+  training.forEach(t => {
+    const d = t.datetime.slice(0, 10);
+    if (!trainPartsMap[d]) trainPartsMap[d] = new Set();
+    (t.parts || []).forEach(p => trainPartsMap[d].add(p));
+    const tt = t.trainingType || 'personal';
+    if (!trainTypeMap[d]) trainTypeMap[d] = tt;
+    else if (trainTypeMap[d] !== tt) trainTypeMap[d] = 'both';
+  });
+
+  const label = `${calYear}年${calMonth + 1}月`;
+  document.getElementById('calMonthLabel').textContent = label;
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const days = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = todayStr();
+  let html = '';
+  for (let i = 0; i < first; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= days; d++) {
+    const dateStr = `${calYear}-${pad(calMonth+1)}-${pad(d)}`;
+    const dow = (first + d - 1) % 7;
+    const count = mealDates[dateStr] || 0;
+    const dots = Math.min(count, 3);
+    const trainType = trainTypeMap[dateStr];
+    const cls = [
+      'cal-day',
+      dow === 0 ? 'sunday' : dow === 6 ? 'saturday' : '',
+      dateStr === today ? 'today' : '',
+      count > 0 ? 'has-meal' : '',
+      dateStr === mealFilterDate ? 'selected' : '',
+      cheatDates.has(dateStr) ? 'cheat-day' : '',
+      trainType === 'personal' ? 'train-personal' : trainType === 'solo' ? 'train-solo' : trainType === 'both' ? 'train-both' : '',
+    ].filter(Boolean).join(' ');
+
+    // Weight
+    const wVal = weightMap[dateStr];
+    const weightHtml = wVal ? `<div class="cal-weight-val">${wVal}kg</div>` : '';
+
+    // Parts chips
+    const parts = trainPartsMap[dateStr] ? [...trainPartsMap[dateStr]] : [];
+    const partsHtml = parts.length
+      ? `<div class="cal-parts-row">${parts.map(p => `<span class="cal-part-chip" style="background:${PART_COLORS[p]||'#888'}">${p}</span>`).join('')}</div>`
+      : '';
+
+    // Meal dots
+    const dotHtml = dots > 0 ? `<div class="cal-dot-row"><div class="cal-dot">${'<span></span>'.repeat(dots)}</div></div>` : '';
+    // Cheat icon next to date number
+    const cheatIcon = cheatDates.has(dateStr) ? '<span class="cal-cheat-icon">👎</span>' : '';
+
+    html += `<div class="${cls}" onclick="openDayDetail('${dateStr}')">
+      <div class="cal-day-num">${d}${cheatIcon}</div>
+      ${weightHtml}
+      ${partsHtml}
+      ${dotHtml}
+    </div>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+}
+function openDayDetail(dateStr) {
+  const [y, m, d] = dateStr.split('-');
+  const label = `${y}年${parseInt(m)}月${parseInt(d)}日`;
+  document.getElementById('dayDetailTitle').textContent = label;
+
+  const meals = load('meals').filter(x => x.datetime.startsWith(dateStr));
+  const training = load('training').filter(x => x.datetime.startsWith(dateStr));
+  const weights = load('weights').filter(x => x.date === dateStr);
+  const cardio = load('cardio').filter(x => x.datetime.startsWith(dateStr));
+
+  let html = '';
+
+  // 体重
+  if (weights.length) {
+    html += `<div class="day-detail-section"><div class="day-detail-label">⚖️ 体重</div>`;
+    weights.forEach(w => {
+      html += `<div class="day-detail-item"><span style="font-size:22px;font-weight:900;color:var(--accent)">${w.weight}kg</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  // 食事
+  if (meals.length) {
+    html += `<div class="day-detail-section"><div class="day-detail-label">🍽 食事（${meals.length}件）</div>`;
+    meals.forEach(m => {
+      const ph = m.photos?.length ? m.photos : (m.photo ? [m.photo] : []);
+      const time = m.datetime.slice(11,16);
+      const cheat = m.cheat ? '👎' : '';
+      html += `<div class="day-detail-item">
+        <div style="font-size:11px;color:var(--accent);font-weight:700">${time} ${cheat}</div>
+        ${ph.length ? `<img src="${ph[0]}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin:6px 0">` : ''}
+        ${ph.length > 1 ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:6px">${ph.slice(1).map(p=>`<img src="${p}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px">`).join('')}</div>` : ''}
+        <div style="font-size:13px;color:var(--text2)">${m.memo || '(メモなし)'}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // 筋トレ
+  if (training.length) {
+    html += `<div class="day-detail-section"><div class="day-detail-label">💪 筋トレ</div>`;
+    training.forEach(t => {
+      const time = t.datetime.slice(11,16);
+      const typeLabel = t.trainingType === 'solo' ? '💪 自主トレ' : '👤 パーソナル';
+      html += `<div class="day-detail-item">
+        <div style="font-size:11px;color:var(--accent);font-weight:700">${time} ${typeLabel}</div>`;
+      if (t.partSections?.length) {
+        t.partSections.forEach(ps => {
+          const col = PART_COLORS[ps.part] || '#888';
+          html += `<div style="margin-top:6px"><span style="color:${col};font-weight:700;font-size:12px">● ${ps.part}</span>`;
+          ps.exercises?.forEach(ex => {
+            const sets = ex.sets?.map(s=>`${s.kg}kg×${s.reps}`).join(' / ') || '';
+            html += `<div style="font-size:12px;color:var(--text2);padding-left:10px">${escHtml(ex.name||'')}: ${sets}</div>`;
+          });
+          html += `</div>`;
+        });
+      } else if (t.name) {
+        const sets = t.sets?.map(s=>`${s.kg}kg×${s.reps}`).join(' / ') || '';
+        html += `<div style="font-size:12px;color:var(--text2)">${escHtml(t.name)}: ${sets}</div>`;
+      }
+      if (t.memo) html += `<div style="font-size:12px;color:var(--text3);margin-top:4px">${escHtml(t.memo)}</div>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+
+  // 有酸素
+  if (cardio.length) {
+    html += `<div class="day-detail-section"><div class="day-detail-label">🏃 有酸素</div>`;
+    cardio.forEach(c => {
+      const time = c.datetime.slice(11,16);
+      html += `<div class="day-detail-item">
+        <div style="font-size:11px;color:var(--accent);font-weight:700">${time}</div>
+        <div style="font-size:13px;color:var(--text)">${escHtml(c.type)} ${c.duration}分 ${c.intensity||''}</div>
+        ${c.memo ? `<div style="font-size:12px;color:var(--text3)">${escHtml(c.memo)}</div>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (!html) html = `<div class="empty-state" style="padding:30px 0"><div class="empty-icon">📭</div><div class="empty-text">この日の記録はありません</div></div>`;
+
+  document.getElementById('dayDetailBody').innerHTML = html;
+  document.getElementById('dayDetailModal').classList.add('open');
+}
+function closeDayDetail(e) {
+  if (e.target === document.getElementById('dayDetailModal')) document.getElementById('dayDetailModal').classList.remove('open');
+}
+
+function handlePhotoUpload(e) {
+  const files = Array.from(e.target.files).slice(0, 4);
+  if (!files.length) return;
+  currentPhotos = [];
+  const grid = document.getElementById('photoPreviewGrid');
+  grid.innerHTML = '';
+  grid.classList.toggle('single', files.length === 1);
+  document.getElementById('uploadPlaceholder').style.display = 'none';
+  let loaded = 0;
+  files.forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      currentPhotos[i] = ev.target.result;
+      const img = document.createElement('img');
+      img.src = ev.target.result;
+      grid.appendChild(img);
+      loaded++;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function saveMeal() {
+  const datetime = getDatetime('mealDate', 'mealTime');
+  const memo = document.getElementById('mealMemo').value.trim();
+  let meals = load('meals');
+  if (editingMealId) {
+    const idx = meals.findIndex(m => m.id === editingMealId);
+    if (idx !== -1) {
+      const existing = meals[idx];
+      const newPhotos = currentPhotos.length > 0 ? [...currentPhotos] : (existing.photos || []);
+      meals[idx] = { ...existing, datetime, memo, photos: newPhotos, cheat: isCheat };
+    }
+    save('meals', meals);
+    resetMealForm();
+    showFlash('食事を更新しました');
+  } else {
+    meals.unshift({ id: uid(), datetime, memo, photos: [...currentPhotos], cheat: isCheat });
+    save('meals', meals);
+    resetMealForm();
+    showFlash('食事を記録しました');
+  }
+  renderMeals();
+  renderCalendar();
+  updateStats();
+}
+
+function resetMealForm() {
+  editingMealId = null;
+  document.getElementById('mealMemo').value = '';
+  document.getElementById('mealPhoto').value = '';
+  document.getElementById('photoPreviewGrid').innerHTML = '';
+  document.getElementById('uploadPlaceholder').style.display = 'block';
+  currentPhotos = [];
+  isCheat = false;
+  const btn = document.getElementById('cheatToggle');
+  btn.classList.remove('active');
+  btn.querySelector('.cheat-label').textContent = 'やらかした…';
+  btn.querySelector('.cheat-icon').textContent = '👎💔';
+  document.getElementById('mealSaveBtn').textContent = '＋ 記録する';
+  document.getElementById('mealCancelBtn').style.display = 'none';
+  document.getElementById('mealFormCard').classList.remove('editing');
+}
+
+function editMealFromModal() {
+  if (!modalMealId) return;
+  const meals = load('meals');
+  const m = meals.find(x => x.id === modalMealId);
+  if (!m) return;
+  closeMealModalDirect();
+
+  // Switch to shokuji tab in case we're not there
+  switchTab('shokuji');
+
+  // Fill the form
+  const dtParts = m.datetime.split('T');
+  document.getElementById('mealDate').value = dtParts[0] || todayStr();
+  const timeVal = dtParts[1] ? dtParts[1].slice(0,5) : roundTo30();
+  buildTimeSelect(document.getElementById('mealTime'), timeVal);
+  document.getElementById('mealMemo').value = m.memo || '';
+
+  // Cheat state
+  isCheat = !!m.cheat;
+  const cheatBtn = document.getElementById('cheatToggle');
+  cheatBtn.classList.toggle('active', isCheat);
+  cheatBtn.querySelector('.cheat-label').textContent = isCheat ? '今日はやらかした！！（タップで解除）' : 'やらかした…';
+
+  // Show existing photos in preview
+  const ph = m.photos?.length ? m.photos : (m.photo ? [m.photo] : []);
+  const grid = document.getElementById('photoPreviewGrid');
+  grid.innerHTML = '';
+  if (ph.length > 0) {
+    currentPhotos = [...ph];
+    grid.classList.toggle('single', ph.length === 1);
+    ph.forEach(p => {
+      const img = document.createElement('img');
+      img.src = p;
+      grid.appendChild(img);
+    });
+    document.getElementById('uploadPlaceholder').style.display = 'none';
+  } else {
+    currentPhotos = [];
+    document.getElementById('uploadPlaceholder').style.display = 'block';
+  }
+
+  // Set edit mode
+  editingMealId = modalMealId;
+  document.getElementById('mealSaveBtn').textContent = '✏️ 更新する';
+  document.getElementById('mealCancelBtn').style.display = 'block';
+  document.getElementById('mealFormCard').classList.add('editing');
+
+  // Scroll to form
+  document.getElementById('mealFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEditMeal() {
+  resetMealForm();
+  const today = todayStr();
+  document.getElementById('mealDate').value = today;
+  buildTimeSelect(document.getElementById('mealTime'), roundTo30());
+}
+
+function renderMeals() {
+  let meals = load('meals');
+  if (mealFilterDate) meals = meals.filter(m => m.datetime.startsWith(mealFilterDate));
+  const grid = document.getElementById('mealGrid');
+  const empty = document.getElementById('mealEmpty');
+  if (!meals.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  const photos = m => m.photos?.length ? m.photos : (m.photo ? [m.photo] : []);
+  grid.innerHTML = meals.map(m => {
+    const ph = photos(m);
+    const imgHtml = ph.length > 1
+      ? `<div class="meal-thumb-multigrid">${ph.map(p => `<img src="${p}" alt="" loading="lazy">`).join('')}</div>`
+      : ph.length === 1
+        ? `<img src="${ph[0]}" alt="" loading="lazy">`
+        : `<div class="meal-thumb-noimg">🍽</div>`;
+    return `<div class="meal-thumb" onclick="openMealModal('${m.id}')">
+      ${imgHtml}
+      <div class="meal-thumb-info">
+        <div class="meal-thumb-time">${fmtDatetime(m.datetime)}${ph.length > 1 ? ` <span style="color:var(--text3)">📷${ph.length}</span>` : ''}${m.cheat ? '<span class="cheat-badge">👎💔</span>' : ''}</div>
+        <div class="meal-thumb-memo">${m.memo || '(メモなし)'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let modalMealId = null;
+function openMealModal(id) {
+  const meals = load('meals');
+  const m = meals.find(x => x.id === id);
+  if (!m) return;
+  modalMealId = id;
+  const ph = m.photos?.length ? m.photos : (m.photo ? [m.photo] : []);
+  const imgEl = document.getElementById('modalImg');
+  if (ph.length === 1) {
+    imgEl.src = ph[0]; imgEl.style.display = 'block';
+    document.getElementById('modalImgGrid').style.display = 'none';
+  } else if (ph.length > 1) {
+    imgEl.style.display = 'none';
+    const g = document.getElementById('modalImgGrid');
+    g.innerHTML = ph.map(p => `<img src="${p}" alt="" style="width:100%;border-radius:4px">`).join('');
+    g.style.display = 'grid';
+  } else {
+    imgEl.style.display = 'none';
+    document.getElementById('modalImgGrid').style.display = 'none';
+  }
+  document.getElementById('modalDatetime').textContent = fmtDatetime(m.datetime);
+  document.getElementById('modalMemo').textContent = m.memo || '(メモなし)';
+  document.getElementById('mealModal').classList.add('open');
+}
+function closeMealModal(e) {
+  if (e.target === document.getElementById('mealModal')) closeMealModalDirect();
+}
+function closeMealModalDirect() {
+  document.getElementById('mealModal').classList.remove('open');
+  modalMealId = null;
+}
+function deleteMealFromModal() {
+  if (!modalMealId) return;
+  if (!confirm_ja('この食事記録を削除しますか？')) return;
+  let meals = load('meals');
+  meals = meals.filter(m => m.id !== modalMealId);
+  save('meals', meals);
+  closeMealModalDirect();
+  renderMeals();
+  updateStats();
+}
+
+// ─── 体重 ──────────────────────────────────────────────
+let editingWeightId = null;
+
+function saveWeight() {
+  const date = document.getElementById('weightDate').value || todayStr();
+  const val = parseFloat(document.getElementById('weightVal').value);
+  if (!val || val < 30 || val > 200) { alert('正しい体重を入力してください'); return; }
+  let weights = load('weights');
+  if (editingWeightId) {
+    const idx = weights.findIndex(w => w.id === editingWeightId);
+    if (idx !== -1) weights[idx] = { ...weights[idx], date, weight: val };
+    weights.sort((a,b) => b.date.localeCompare(a.date));
+    save('weights', weights);
+    resetWeightForm();
+    showFlash('体重を更新しました');
+  } else {
+    weights.push({ id: uid(), date, weight: val });
+    weights.sort((a,b) => b.date.localeCompare(a.date));
+    save('weights', weights);
+    resetWeightForm();
+    showFlash('体重を記録しました');
+  }
+  renderWeights();
+  renderWeightChart();
+  updateStats();
+}
+
+function resetWeightForm() {
+  editingWeightId = null;
+  document.getElementById('weightDate').value = todayStr();
+  document.getElementById('weightVal').value = '';
+  document.getElementById('weightSaveBtn').textContent = '＋ 記録する';
+  document.getElementById('weightCancelBtn').style.display = 'none';
+  document.getElementById('weightFormCard').classList.remove('editing');
+}
+
+function editWeight(id) {
+  const weights = load('weights');
+  const w = weights.find(x => x.id === id);
+  if (!w) return;
+  document.getElementById('weightDate').value = w.date;
+  document.getElementById('weightVal').value = w.weight;
+  editingWeightId = id;
+  document.getElementById('weightSaveBtn').textContent = '✏️ 更新する';
+  document.getElementById('weightCancelBtn').style.display = 'block';
+  document.getElementById('weightFormCard').classList.add('editing');
+  document.getElementById('weightFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEditWeight() {
+  resetWeightForm();
+}
+
+function renderWeights() {
+  const weights = load('weights');
+  const list = document.getElementById('weightList');
+  const empty = document.getElementById('weightEmpty');
+  if (!weights.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = weights.map(w => `
+    <div class="entry-card">
+      <div class="entry-datetime">${fmtDate(w.date)}</div>
+      <div class="entry-main">${w.weight} <span style="font-size:14px;color:var(--text3)">kg</span></div>
+      <div class="entry-delete" style="display:flex;gap:6px">
+        <button class="btn btn-edit" onclick="editWeight('${w.id}')">編集</button>
+        <button class="btn btn-danger" onclick="deleteWeight('${w.id}')">削除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteWeight(id) {
+  if (!confirm_ja('この体重記録を削除しますか？')) return;
+  let weights = load('weights');
+  weights = weights.filter(w => w.id !== id);
+  save('weights', weights);
+  renderWeights();
+  renderWeightChart();
+  updateStats();
+}
+
+function renderWeightChart() {
+  const weights = load('weights');
+  const svg = document.getElementById('weightChart');
+  if (!svg) return;
+  const W = svg.parentElement.clientWidth - 32;
+  const H = 140;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+
+  if (weights.length < 2) {
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#6a809a" font-size="12" font-family="-apple-system,sans-serif">データが少なすぎます（2件以上必要）</text>`;
+    return;
+  }
+
+  // Last 30 days
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-29);
+  const cutStr = cutoff.toISOString().slice(0,10);
+  const pts = [...weights].filter(w => w.date >= cutStr).sort((a,b) => a.date.localeCompare(b.date));
+  if (pts.length < 2) {
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#6a809a" font-size="12" font-family="-apple-system,sans-serif">30日以内のデータが少なすぎます</text>`;
+    return;
+  }
+
+  const vals = pts.map(p => p.weight);
+  const minW = Math.min(...vals), maxW = Math.max(...vals);
+  const pad = { l:36, r:12, t:14, b:26 };
+  const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
+  const range = maxW - minW || 1;
+
+  const x = i => pad.l + (i/(pts.length-1))*cW;
+  const y = v => pad.t + (1 - (v-minW)/range)*cH;
+
+  // Grid lines
+  const gridLines = [minW, minW+range/2, maxW];
+  let gridSvg = '';
+  gridLines.forEach(v => {
+    const yy = y(v);
+    gridSvg += `<line x1="${pad.l}" y1="${yy}" x2="${pad.l+cW}" y2="${yy}" stroke="#2a3a54" stroke-dasharray="3,3"/>`;
+    gridSvg += `<text x="${pad.l-4}" y="${yy+4}" text-anchor="end" fill="#6a809a" font-size="10" font-family="-apple-system,sans-serif">${v.toFixed(1)}</text>`;
+  });
+
+  // Area path
+  let areaD = `M${x(0)} ${y(pts[0].weight)}`;
+  pts.forEach((p,i) => { if(i>0) areaD += ` L${x(i)} ${y(p.weight)}`; });
+  areaD += ` L${x(pts.length-1)} ${H-pad.b} L${x(0)} ${H-pad.b} Z`;
+
+  // Line path
+  let lineD = `M${x(0)} ${y(pts[0].weight)}`;
+  pts.forEach((p,i) => { if(i>0) lineD += ` L${x(i)} ${y(p.weight)}`; });
+
+  // Dots
+  let dots = pts.map((p,i) => `<circle cx="${x(i)}" cy="${y(p.weight)}" r="3.5" fill="#e8a020" stroke="#090d14" stroke-width="2"/>`).join('');
+
+  // X labels: first, mid, last
+  const showIdx = [0, Math.floor((pts.length-1)/2), pts.length-1];
+  let xlabels = showIdx.map(i => {
+    const d = new Date(pts[i].date+'T00:00:00');
+    const label = `${d.getMonth()+1}/${d.getDate()}`;
+    return `<text x="${x(i)}" y="${H-4}" text-anchor="middle" fill="#6a809a" font-size="10" font-family="-apple-system,sans-serif">${label}</text>`;
+  }).join('');
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#e8a020" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#e8a020" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${gridSvg}
+    <path d="${areaD}" fill="url(#chartGradient)"/>
+    <path d="${lineD}" fill="none" stroke="#e8a020" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots}
+    ${xlabels}
+  `;
+}
+
+// ─── 筋トレ ────────────────────────────────────────────
+let editingTrainingId = null;
+// partExercises: { '脚': [{name:'', sets:[{kg:'',reps:''}]}], ... }
+let partExercises = {};
+
+function togglePart(name) {
+  const idx = selectedParts.indexOf(name);
+  if (idx === -1) {
+    selectedParts.push(name);
+    if (!partExercises[name]) {
+      partExercises[name] = [{ name: '', sets: [{ kg: '', reps: '' }] }];
+    }
+  } else {
+    selectedParts.splice(idx, 1);
+    delete partExercises[name];
+  }
+  document.querySelectorAll('.part-btn').forEach(btn => {
+    const n = btn.textContent.trim();
+    const active = selectedParts.includes(n);
+    btn.classList.toggle('active', active);
+    if (active) {
+      btn.style.background = PART_COLORS[n] || 'var(--accent)';
+      btn.style.color = '#000';
+      btn.style.borderColor = PART_COLORS[n] || 'var(--accent)';
+    } else {
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }
+  });
+  renderPartSections();
+}
+
+function addExercise(part) {
+  if (!partExercises[part]) partExercises[part] = [];
+  partExercises[part].push({ name: '', sets: [{ kg: '', reps: '' }] });
+  renderPartSections();
+}
+
+function removeExercise(part, exIdx) {
+  if (!partExercises[part]) return;
+  partExercises[part].splice(exIdx, 1);
+  if (!partExercises[part].length) {
+    partExercises[part] = [{ name: '', sets: [{ kg: '', reps: '' }] }];
+  }
+  renderPartSections();
+}
+
+function addSet(part, exIdx) {
+  partExercises[part][exIdx].sets.push({ kg: '', reps: '' });
+  renderPartSections();
+}
+
+function removeSet(part, exIdx, setIdx) {
+  partExercises[part][exIdx].sets.splice(setIdx, 1);
+  if (!partExercises[part][exIdx].sets.length) {
+    partExercises[part][exIdx].sets.push({ kg: '', reps: '' });
+  }
+  renderPartSections();
+}
+
+function readPartExercisesFromDOM() {
+  // Persist current input values back to partExercises before re-render
+  selectedParts.forEach(part => {
+    const exArr = partExercises[part] || [];
+    exArr.forEach((ex, ei) => {
+      const nameEl = document.getElementById(`ex-name-${part}-${ei}`);
+      if (nameEl) ex.name = nameEl.value;
+      ex.sets.forEach((s, si) => {
+        const kgEl = document.getElementById(`ex-kg-${part}-${ei}-${si}`);
+        const repsEl = document.getElementById(`ex-reps-${part}-${ei}-${si}`);
+        if (kgEl) s.kg = kgEl.value;
+        if (repsEl) s.reps = repsEl.value;
+      });
+    });
+  });
+}
+
+function renderPartSections() {
+  const container = document.getElementById('partSectionsContainer');
+  if (!selectedParts.length) { container.innerHTML = ''; return; }
+  const PARTS_ORDER = ['脚','尻','肩','背中','胸','腕','腹筋'];
+  const ordered = PARTS_ORDER.filter(p => selectedParts.includes(p));
+  container.innerHTML = ordered.map(part => {
+    const color = PART_COLORS[part] || '#888';
+    const exercises = partExercises[part] || [];
+    const exHtml = exercises.map((ex, ei) => {
+      const setsHtml = ex.sets.map((s, si) => `
+        <div class="set-row">
+          <div class="set-num">${si + 1}</div>
+          <input type="number" step="0.5" min="0" placeholder="60" value="${escHtml(s.kg)}"
+            id="ex-kg-${part}-${ei}-${si}" style="text-align:center">
+          <input type="number" min="1" placeholder="10" value="${escHtml(s.reps)}"
+            id="ex-reps-${part}-${ei}-${si}" style="text-align:center">
+          <button class="btn-remove-set" onclick="readPartExercisesFromDOM();removeSet('${part}',${ei},${si})">✕</button>
+        </div>
+      `).join('');
+      const showRemove = exercises.length > 1 ? `<button class="btn btn-danger" style="padding:4px 10px;font-size:11px;margin-left:auto" onclick="readPartExercisesFromDOM();removeExercise('${part}',${ei})">種目を削除</button>` : '';
+      return `<div style="padding-top:${ei > 0 ? '10px' : '0'};${ei > 0 ? 'border-top:1px solid var(--border);margin-top:10px' : ''}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <input type="text" placeholder="例: スクワット" value="${escHtml(ex.name)}"
+            id="ex-name-${part}-${ei}" style="flex:1;margin:0">
+          ${showRemove}
+        </div>
+        <div class="sets-header">
+          <span>No.</span><span>重量 (kg)</span><span>レップ数</span><span></span>
+        </div>
+        ${setsHtml}
+        <button class="btn-add-set" onclick="readPartExercisesFromDOM();addSet('${part}',${ei})">＋ セット追加</button>
+      </div>`;
+    }).join('');
+    return `<div style="background:var(--bg3);border-left:3px solid ${color};border-radius:8px;padding:12px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:800;color:${color};margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0"></span>
+        ${escHtml(part)}
+      </div>
+      ${exHtml}
+      <button class="btn-add-set" style="margin-top:8px" onclick="readPartExercisesFromDOM();addExercise('${part}')">＋ 種目を追加</button>
+    </div>`;
+  }).join('');
+}
+
+function saveTraining() {
+  readPartExercisesFromDOM();
+  const datetime = getDatetime('trainDate', 'trainTime');
+  const memo = document.getElementById('trainMemo').value.trim();
+  if (!selectedParts.length) { alert('部位を選択してください'); return; }
+
+  const partSections = selectedParts.map(part => ({
+    part,
+    exercises: (partExercises[part] || []).map(ex => ({
+      name: ex.name,
+      sets: ex.sets.filter(s => s.kg || s.reps)
+    })).filter(ex => ex.name || ex.sets.length)
+  })).filter(ps => ps.exercises.length);
+
+  let training = load('training');
+  const record = {
+    id: editingTrainingId || uid(),
+    datetime,
+    memo,
+    parts: [...selectedParts],
+    partSections,
+    trainingType: currentTrainType
+  };
+  if (editingTrainingId) {
+    const idx = training.findIndex(t => t.id === editingTrainingId);
+    if (idx !== -1) training[idx] = record;
+    save('training', training);
+    resetTrainingForm();
+    showFlash('筋トレを更新しました');
+  } else {
+    training.unshift(record);
+    save('training', training);
+    resetTrainingForm();
+    showFlash('筋トレを記録しました');
+  }
+  renderTraining();
+  updateStats();
+  renderCalendar();
+}
+
+function resetTrainingForm() {
+  editingTrainingId = null;
+  document.getElementById('trainMemo').value = '';
+  selectedParts = [];
+  partExercises = {};
+  setTrainType('personal');
+  document.querySelectorAll('.part-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.background = '';
+    b.style.color = '';
+    b.style.borderColor = '';
+  });
+  renderPartSections();
+  document.getElementById('trainSaveBtn').textContent = '＋ 記録する';
+  document.getElementById('trainCancelBtn').style.display = 'none';
+  document.getElementById('trainFormCard').classList.remove('editing');
+}
+
+function editTraining(id) {
+  const training = load('training');
+  const t = training.find(x => x.id === id);
+  if (!t) return;
+  switchTab('kintore');
+  const dtParts = t.datetime.split('T');
+  document.getElementById('trainDate').value = dtParts[0] || todayStr();
+  const timeVal = dtParts[1] ? dtParts[1].slice(0,5) : roundTo30();
+  buildTimeSelect(document.getElementById('trainTime'), timeVal);
+  document.getElementById('trainMemo').value = t.memo || '';
+  setTrainType(t.trainingType || 'personal');
+
+  selectedParts = [];
+  partExercises = {};
+
+  if (t.partSections && t.partSections.length) {
+    // New format
+    t.partSections.forEach(ps => {
+      selectedParts.push(ps.part);
+      partExercises[ps.part] = ps.exercises.map(ex => ({
+        name: ex.name || '',
+        sets: (ex.sets && ex.sets.length) ? ex.sets.map(s => ({ kg: s.kg || '', reps: s.reps || '' })) : [{ kg: '', reps: '' }]
+      }));
+      if (!partExercises[ps.part].length) partExercises[ps.part] = [{ name: '', sets: [{ kg: '', reps: '' }] }];
+    });
+  } else if (Array.isArray(t.parts) && t.parts.length) {
+    // Old format fallback: reconstruct from old name+sets
+    t.parts.forEach(p => {
+      selectedParts.push(p);
+      partExercises[p] = [{
+        name: t.name || '',
+        sets: (t.sets || []).map(s => ({ kg: s.kg || '', reps: s.reps || '' }))
+      }];
+      if (!partExercises[p][0].sets.length) partExercises[p][0].sets = [{ kg: '', reps: '' }];
+    });
+  }
+
+  document.querySelectorAll('.part-btn').forEach(btn => {
+    const n = btn.textContent.trim();
+    const active = selectedParts.includes(n);
+    btn.classList.toggle('active', active);
+    if (active) {
+      btn.style.background = PART_COLORS[n] || 'var(--accent)';
+      btn.style.color = '#000';
+      btn.style.borderColor = PART_COLORS[n] || 'var(--accent)';
+    } else {
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }
+  });
+  renderPartSections();
+
+  editingTrainingId = id;
+  document.getElementById('trainSaveBtn').textContent = '✏️ 更新する';
+  document.getElementById('trainCancelBtn').style.display = 'block';
+  document.getElementById('trainFormCard').classList.add('editing');
+  document.getElementById('trainFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEditTraining() {
+  resetTrainingForm();
+  const today = todayStr();
+  document.getElementById('trainDate').value = today;
+  buildTimeSelect(document.getElementById('trainTime'), roundTo30());
+}
+
+function renderTraining() {
+  const training = load('training');
+  const list = document.getElementById('trainingList');
+  const empty = document.getElementById('trainingEmpty');
+  if (!training.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = training.map(t => {
+    // Part chips
+    const parts = t.parts || (t.partSections ? t.partSections.map(ps => ps.part) : []);
+    const partsHtml = parts.length
+      ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${parts.map(p => `<span class="part-tag" style="background:${PART_COLORS[p]||'#888'}">${escHtml(p)}</span>`).join('')}</div>`
+      : '';
+
+    let bodyHtml = '';
+    if (t.partSections && t.partSections.length) {
+      bodyHtml = t.partSections.map(ps => {
+        const color = PART_COLORS[ps.part] || '#888';
+        const exLines = ps.exercises.map(ex => {
+          const setsStr = ex.sets.map(s => `${s.kg}kg×${s.reps}`).join(' / ');
+          return `<div style="font-size:12px;color:var(--text2);margin-top:3px"><span style="color:var(--text);font-weight:700">${escHtml(ex.name)}</span>${setsStr ? ': ' + escHtml(setsStr) : ''}</div>`;
+        }).join('');
+        return `<div style="margin-bottom:6px">
+          <div style="font-size:11px;font-weight:800;color:${color};letter-spacing:0.5px">${escHtml(ps.part)}</div>
+          ${exLines}
+        </div>`;
+      }).join('');
+    } else if (t.name) {
+      // Old format fallback display
+      const setsStr = (t.sets || []).map((s,i) => `<span class="set-badge">Set${i+1}: ${s.kg}kg × ${s.reps}回</span>`).join('');
+      bodyHtml = `<div class="exercise-name" style="font-size:15px">${escHtml(t.name)}</div>
+        <div class="sets-display" style="margin-top:4px">${setsStr}</div>`;
+    }
+
+    return `<div class="exercise-entry">
+      <div class="entry-datetime">${fmtDatetime(t.datetime)}</div>
+      ${partsHtml}
+      ${bodyHtml}
+      ${t.memo ? `<div class="entry-sub" style="margin-top:6px">${escHtml(t.memo)}</div>` : ''}
+      <div class="entry-delete" style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-edit" onclick="editTraining('${t.id}')">編集</button>
+        <button class="btn btn-danger" onclick="deleteTraining('${t.id}')">削除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteTraining(id) {
+  if (!confirm_ja('この筋トレ記録を削除しますか？')) return;
+  let training = load('training');
+  training = training.filter(t => t.id !== id);
+  save('training', training);
+  renderTraining();
+  updateStats();
+  renderCalendar();
+}
+
+// ─── 有酸素 ────────────────────────────────────────────
+let selectedIntensity = 'LISS';
+let editingCardioId = null;
+
+function selectIntensity(btn, val) {
+  selectedIntensity = val;
+  document.querySelectorAll('.intensity-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function saveCardio() {
+  const datetime = getDatetime('cardioDate', 'cardioTime');
+  const type = document.getElementById('cardioType').value;
+  const duration = parseInt(document.getElementById('cardioDuration').value);
+  const memo = document.getElementById('cardioMemo').value.trim();
+  if (!duration || duration < 1) { alert('時間を入力してください'); return; }
+  let cardio = load('cardio');
+  if (editingCardioId) {
+    const idx = cardio.findIndex(c => c.id === editingCardioId);
+    if (idx !== -1) cardio[idx] = { ...cardio[idx], datetime, type, duration, intensity: selectedIntensity, memo };
+    save('cardio', cardio);
+    resetCardioForm();
+    showFlash('有酸素を更新しました');
+  } else {
+    cardio.unshift({ id: uid(), datetime, type, duration, intensity: selectedIntensity, memo });
+    save('cardio', cardio);
+    resetCardioForm();
+    showFlash('有酸素を記録しました');
+  }
+  renderCardio();
+  updateStats();
+}
+
+function resetCardioForm() {
+  editingCardioId = null;
+  document.getElementById('cardioDuration').value = '';
+  document.getElementById('cardioMemo').value = '';
+  document.getElementById('cardioSaveBtn').textContent = '＋ 記録する';
+  document.getElementById('cardioCancelBtn').style.display = 'none';
+  document.getElementById('cardioFormCard').classList.remove('editing');
+}
+
+function editCardio(id) {
+  const cardio = load('cardio');
+  const c = cardio.find(x => x.id === id);
+  if (!c) return;
+  switchTab('yusanso');
+  const dtParts = c.datetime.split('T');
+  document.getElementById('cardioDate').value = dtParts[0] || todayStr();
+  const timeVal = dtParts[1] ? dtParts[1].slice(0,5) : roundTo30();
+  buildTimeSelect(document.getElementById('cardioTime'), timeVal);
+  document.getElementById('cardioType').value = c.type;
+  document.getElementById('cardioDuration').value = c.duration;
+  document.getElementById('cardioMemo').value = c.memo || '';
+  // Set intensity
+  selectedIntensity = c.intensity || 'LISS';
+  document.querySelectorAll('.intensity-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent === selectedIntensity);
+  });
+  editingCardioId = id;
+  document.getElementById('cardioSaveBtn').textContent = '✏️ 更新する';
+  document.getElementById('cardioCancelBtn').style.display = 'block';
+  document.getElementById('cardioFormCard').classList.add('editing');
+  document.getElementById('cardioFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEditCardio() {
+  resetCardioForm();
+  const today = todayStr();
+  document.getElementById('cardioDate').value = today;
+  buildTimeSelect(document.getElementById('cardioTime'), roundTo30());
+  selectedIntensity = 'LISS';
+  document.querySelectorAll('.intensity-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent === 'LISS');
+  });
+}
+
+function renderCardio() {
+  const cardio = load('cardio');
+  const list = document.getElementById('cardioList');
+  const empty = document.getElementById('cardioEmpty');
+  if (!cardio.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = cardio.map(c => `
+    <div class="entry-card">
+      <div class="entry-datetime">${fmtDatetime(c.datetime)}</div>
+      <div class="entry-main">${escHtml(c.type)}</div>
+      <div class="entry-tags">
+        <span class="tag accent">${c.duration}分</span>
+        <span class="tag">${escHtml(c.intensity)}</span>
+      </div>
+      ${c.memo ? `<div class="entry-sub" style="margin-top:6px">${escHtml(c.memo)}</div>` : ''}
+      <div class="entry-delete" style="display:flex;gap:6px">
+        <button class="btn btn-edit" onclick="editCardio('${c.id}')">編集</button>
+        <button class="btn btn-danger" onclick="deleteCardio('${c.id}')">削除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteCardio(id) {
+  if (!confirm_ja('この有酸素記録を削除しますか？')) return;
+  let cardio = load('cardio');
+  cardio = cardio.filter(c => c.id !== id);
+  save('cardio', cardio);
+  renderCardio();
+  updateStats();
+}
+
+// ─── Flash message ─────────────────────────────────────
+function showFlash(msg) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  Object.assign(el.style, {
+    position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+    background:'var(--accent)', color:'#0a0a0a', fontWeight:'700',
+    padding:'10px 22px', borderRadius:'24px', fontSize:'13px',
+    zIndex:'999', pointerEvents:'none', whiteSpace:'nowrap',
+    boxShadow:'0 4px 20px rgba(232,160,32,0.4)',
+    transition:'opacity 0.4s'
+  });
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }, 1800);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── 目標体重 ───────────────────────────────────────────
+function openTargetWeightInput() {
+  const tw = localStorage.getItem(TARGET_WEIGHT_KEY);
+  if (tw) document.getElementById('targetWeightInput').value = tw;
+  document.getElementById('targetWeightInputArea').style.display = 'block';
+}
+function closeTargetWeightInput() {
+  document.getElementById('targetWeightInputArea').style.display = 'none';
+}
+function saveTargetWeight() {
+  const val = parseFloat(document.getElementById('targetWeightInput').value);
+  if (!val || val < 30 || val > 200) { alert('正しい目標体重を入力してください'); return; }
+  localStorage.setItem(TARGET_WEIGHT_KEY, val);
+  closeTargetWeightInput();
+  updateTargetWeightDisplay();
+  showFlash('目標体重を設定しました');
+}
+function updateTargetWeightDisplay() {
+  const tw = parseFloat(localStorage.getItem(TARGET_WEIGHT_KEY));
+  const el = document.getElementById('targetWeightDisplay');
+  const btnEl = document.getElementById('targetWeightBtn');
+  if (!el) return;
+  if (!tw) { el.innerHTML = ''; if (btnEl) btnEl.textContent = '目標体重を設定'; return; }
+  if (btnEl) btnEl.textContent = `目標: ${tw}kg`;
+  // Get current weight
+  const weights = load('weights');
+  const today = todayStr();
+  const todayW = weights.filter(w => w.date === today);
+  if (!todayW.length) {
+    el.innerHTML = `<span class="target-weight-line">目標 <strong>${tw}kg</strong></span>`;
+    return;
+  }
+  const current = parseFloat(todayW[todayW.length-1].weight);
+  const diff = (current - tw).toFixed(1);
+  if (current <= tw) {
+    el.innerHTML = `<span class="target-achieved">🎯 目標達成！</span>`;
+  } else {
+    el.innerHTML = `<span class="target-weight-line">目標 <strong>${tw}kg</strong> まで あと <strong>${diff}kg</strong></span>`;
+  }
+}
+
+// ─── 筋トレ部位 ─────────────────────────────────────────
+const PART_COLORS = {
+  '脚': '#e87070', '尻': '#f59e9e', '肩': '#4fc3f7',
+  '背中': '#4dd88a', '胸': '#e8a020', '腕': '#c084fc', '腹筋': '#fbbf24'
+};
+let selectedParts = [];
+let currentTrainType = 'personal';
+function setTrainType(type) {
+  currentTrainType = type;
+  document.getElementById('typeBtnPersonal').classList.toggle('active', type === 'personal');
+  document.getElementById('typeBtnSolo').classList.toggle('active', type === 'solo');
+}
+
+// ─── Countdown ─────────────────────────────────────────
+function updateCountdown() {
+  const data = JSON.parse(localStorage.getItem('competition') || '{}');
+  const el = document.getElementById('countdownDays');
+  const label = document.getElementById('countdownLabel');
+  if (!data.date) {
+    el.textContent = '設定';
+    label.textContent = '大会日をタップ';
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const comp = new Date(data.date); comp.setHours(0,0,0,0);
+  const diff = Math.round((comp - today) / 86400000);
+  if (diff > 0) {
+    el.textContent = diff;
+    label.textContent = (data.name || '大会') + 'まで あと';
+  } else if (diff === 0) {
+    el.textContent = '今日';
+    label.textContent = (data.name || '大会') + '当日！';
+  } else {
+    el.textContent = Math.abs(diff);
+    label.textContent = (data.name || '大会') + 'から ' + Math.abs(diff) + '日後';
+  }
+}
+function openCountdownModal() {
+  const data = JSON.parse(localStorage.getItem('competition') || '{}');
+  if (data.date) document.getElementById('competitionDate').value = data.date;
+  if (data.name) document.getElementById('competitionName').value = data.name;
+  document.getElementById('countdownModal').classList.add('open');
+}
+function closeCountdownModal() {
+  document.getElementById('countdownModal').classList.remove('open');
+}
+function saveCompetitionDate() {
+  const date = document.getElementById('competitionDate').value;
+  const name = document.getElementById('competitionName').value.trim();
+  if (!date) { alert('日付を入力してください'); return; }
+  localStorage.setItem('competition', JSON.stringify({ date, name }));
+  updateCountdown();
+  closeCountdownModal();
+}
+document.addEventListener('click', e => {
+  if (e.target === document.getElementById('countdownModal')) closeCountdownModal();
+});
+
+// ─── Trainer Memo ──────────────────────────────────────
+let editingMemoId = null;
+
+function saveMemoNote() {
+  const content = document.getElementById('memoContent').value.trim();
+  if (!content) { alert('内容を入力してください'); return; }
+  const date = document.getElementById('memoDate').value;
+  const memos = load('memos');
+  const record = { id: editingMemoId || uid(), date, content, createdAt: new Date().toISOString() };
+  if (editingMemoId) {
+    const idx = memos.findIndex(m => m.id === editingMemoId);
+    if (idx !== -1) memos[idx] = record;
+  } else {
+    memos.unshift(record);
+  }
+  save('memos', memos);
+  resetMemoForm();
+  renderMemoNotes();
+  showFlash(editingMemoId ? 'メモを更新しました' : 'メモを追加しました');
+}
+
+function resetMemoForm() {
+  editingMemoId = null;
+  document.getElementById('memoDate').value = todayStr();
+  document.getElementById('memoContent').value = '';
+  document.getElementById('memoSaveBtn').textContent = '＋ 追加する';
+  document.getElementById('memoCancelBtn').style.display = 'none';
+  document.getElementById('memoFormCard').classList.remove('editing');
+  document.getElementById('memoEditLabel').style.display = 'none';
+}
+
+function cancelEditMemo() { resetMemoForm(); }
+
+function editMemoNote(id) {
+  const m = load('memos').find(x => x.id === id);
+  if (!m) return;
+  editingMemoId = id;
+  document.getElementById('memoDate').value = m.date || '';
+  document.getElementById('memoContent').value = m.content;
+  document.getElementById('memoSaveBtn').textContent = '✏️ 更新する';
+  document.getElementById('memoCancelBtn').style.display = 'block';
+  document.getElementById('memoFormCard').classList.add('editing');
+  document.getElementById('memoEditLabel').style.display = 'block';
+  document.getElementById('memoFormCard').scrollIntoView({ behavior:'smooth' });
+}
+
+function deleteMemoNote(id) {
+  if (!confirm_ja('このメモを削除しますか？')) return;
+  save('memos', load('memos').filter(m => m.id !== id));
+  renderMemoNotes();
+}
+
+function renderMemoNotes() {
+  const memos = load('memos');
+  const list  = document.getElementById('memoList');
+  const empty = document.getElementById('memoEmpty');
+  if (!memos.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = memos.map(m => `
+    <div class="memo-card">
+      <div class="memo-card-header">
+        ${m.date ? `<span style="font-size:13px;color:var(--text2);font-weight:600">${m.date.replace(/-/g,'/')}</span>` : '<span></span>'}
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-edit" onclick="editMemoNote('${m.id}')">✏️ 編集</button>
+          <button class="btn btn-danger" onclick="deleteMemoNote('${m.id}')">削除</button>
+        </div>
+      </div>
+      <div class="memo-content">${escHtml(m.content).replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+}
+
+// ─── Init ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Set default datetimes
+  const today = todayStr();
+  const t30 = roundTo30();
+  document.getElementById('mealDate').value = today;
+  document.getElementById('trainDate').value = today;
+  document.getElementById('cardioDate').value = today;
+  document.getElementById('weightDate').value = today;
+  document.getElementById('memoDate').value = today;
+  buildTimeSelect(document.getElementById('mealTime'), t30);
+  buildTimeSelect(document.getElementById('trainTime'), t30);
+  buildTimeSelect(document.getElementById('cardioTime'), t30);
+
+  initCalendar();
+  renderMeals();
+  renderWeights();
+  renderTraining();
+  renderCardio();
+  updateStats();
+  updateCountdown();
+  updateTargetWeightDisplay();
+});
+</script>
+</body>
+</html>
