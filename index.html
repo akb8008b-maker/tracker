@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>コンペ準備トラッカー</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
   :root {
     --bg: #fff0f5;
@@ -1457,11 +1459,33 @@
 </div>
 
 <script>
+// ─── Firebase ──────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAxK6itekdK7Ux_MmhIQxni4MdpxOi4JZA",
+  authDomain: "tracker-e76aa.firebaseapp.com",
+  projectId: "tracker-e76aa",
+  storageBucket: "tracker-e76aa.firebasestorage.app",
+  messagingSenderId: "1019075287665",
+  appId: "1:1019075287665:web:d2e2177c271069e00019d0"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+async function fsSet(docId, data) {
+  try { await db.collection('tracker').doc(docId).set(data); } catch(e) { console.warn('Firestore write error', e); }
+}
+async function fsGet(docId) {
+  try { const d = await db.collection('tracker').doc(docId).get(); return d.exists ? d.data() : null; } catch(e) { return null; }
+}
+
 // ─── Storage ───────────────────────────────────────────
 const KEYS = { meals:'cptrk_meals', weights:'cptrk_weights', training:'cptrk_training', cardio:'cptrk_cardio', memos:'cptrk_memos' };
 const TARGET_WEIGHT_KEY = 'cptrk_targetWeight';
 const load = k => JSON.parse(localStorage.getItem(KEYS[k]) || '[]');
-const save = (k,v) => localStorage.setItem(KEYS[k], JSON.stringify(v));
+function save(k, v) {
+  localStorage.setItem(KEYS[k], JSON.stringify(v));
+  fsSet(k, { items: v });
+}
 
 // ─── Utils ─────────────────────────────────────────────
 const pad = n => String(n).padStart(2,'0');
@@ -2548,6 +2572,7 @@ function saveTargetWeight() {
   const val = parseFloat(document.getElementById('targetWeightInput').value);
   if (!val || val < 30 || val > 200) { alert('正しい目標体重を入力してください'); return; }
   localStorage.setItem(TARGET_WEIGHT_KEY, val);
+  fsGet('settings').then(s => fsSet('settings', Object.assign(s||{}, { targetWeight: val })));
   closeTargetWeightInput();
   updateTargetWeightDisplay();
   showFlash('目標体重を設定しました');
@@ -2627,6 +2652,7 @@ function saveCompetitionDate() {
   const name = document.getElementById('competitionName').value.trim();
   if (!date) { alert('日付を入力してください'); return; }
   localStorage.setItem('competition', JSON.stringify({ date, name }));
+  fsGet('settings').then(s => fsSet('settings', Object.assign(s||{}, { competition: { date, name } })));
   updateCountdown();
   closeCountdownModal();
 }
@@ -2706,7 +2732,7 @@ function renderMemoNotes() {
 }
 
 // ─── Init ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Set default datetimes
   const today = todayStr();
   const t30 = roundTo30();
@@ -2718,6 +2744,20 @@ document.addEventListener('DOMContentLoaded', () => {
   buildTimeSelect(document.getElementById('mealTime'), t30);
   buildTimeSelect(document.getElementById('trainTime'), t30);
   buildTimeSelect(document.getElementById('cardioTime'), t30);
+
+  // Firestore同期
+  try {
+    const keys = ['meals','weights','training','cardio','memos'];
+    await Promise.all(keys.map(async k => {
+      const d = await fsGet(k);
+      if (d && d.items) localStorage.setItem(KEYS[k], JSON.stringify(d.items));
+    }));
+    const s = await fsGet('settings');
+    if (s) {
+      if (s.targetWeight != null) localStorage.setItem(TARGET_WEIGHT_KEY, s.targetWeight);
+      if (s.competition) localStorage.setItem('competition', JSON.stringify(s.competition));
+    }
+  } catch(e) { console.warn('Firestore sync error', e); }
 
   initCalendar();
   renderMeals();
