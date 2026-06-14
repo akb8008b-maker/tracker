@@ -1800,20 +1800,24 @@ function closeDayDetail(e) {
   if (e.target === document.getElementById('dayDetailModal')) document.getElementById('dayDetailModal').classList.remove('open');
 }
 
+let photosReady = true;
+
 function handlePhotoUpload(e) {
   const files = Array.from(e.target.files).slice(0, 4);
   if (!files.length) return;
   currentPhotos = [];
+  photosReady = false;
+  const saveBtn = document.getElementById('mealSaveBtn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '📷 処理中...'; }
   const grid = document.getElementById('photoPreviewGrid');
   grid.innerHTML = '';
   grid.classList.toggle('single', files.length === 1);
   document.getElementById('uploadPlaceholder').style.display = 'none';
-  currentPhotos = [];
+  let done = 0;
   files.forEach((file, i) => {
     const reader = new FileReader();
     reader.onload = ev => {
       const original = ev.target.result;
-      // canvasで圧縮（最大800px, 品質0.7）
       const image = new Image();
       image.onload = () => {
         const MAX = 800;
@@ -1830,6 +1834,11 @@ function handlePhotoUpload(e) {
         const img = document.createElement('img');
         img.src = compressed;
         grid.appendChild(img);
+        done++;
+        if (done === files.length) {
+          photosReady = true;
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '＋ 記録する'; }
+        }
       };
       image.src = original;
     };
@@ -1838,6 +1847,7 @@ function handlePhotoUpload(e) {
 }
 
 function saveMeal() {
+  if (!photosReady) { showFlash('写真を処理中です。少し待ってください'); return; }
   const datetime = getDatetime('mealDate', 'mealTime');
   const memo = document.getElementById('mealMemo').value.trim();
   let meals = load('meals');
