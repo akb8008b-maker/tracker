@@ -1802,7 +1802,31 @@ function closeDayDetail(e) {
 
 let photosReady = true;
 
-function handlePhotoUpload(e) {
+function compressImage(dataUrl) {
+  return new Promise(resolve => {
+    try {
+      const image = new Image();
+      image.onload = () => {
+        try {
+          const MAX = 600;
+          let w = image.width, h = image.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.65));
+        } catch(e) { resolve(dataUrl); }
+      };
+      image.onerror = () => resolve(dataUrl);
+      image.src = dataUrl;
+    } catch(e) { resolve(dataUrl); }
+  });
+}
+
+async function handlePhotoUpload(e) {
   const files = Array.from(e.target.files).slice(0, 4);
   if (!files.length) return;
   currentPhotos = [];
@@ -1813,37 +1837,24 @@ function handlePhotoUpload(e) {
   grid.innerHTML = '';
   grid.classList.toggle('single', files.length === 1);
   document.getElementById('uploadPlaceholder').style.display = 'none';
-  let done = 0;
-  files.forEach((file, i) => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const original = ev.target.result;
-      const image = new Image();
-      image.onload = () => {
-        const MAX = 800;
-        let w = image.width, h = image.height;
-        if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-          else { w = Math.round(w * MAX / h); h = MAX; }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(image, 0, 0, w, h);
-        const compressed = canvas.toDataURL('image/jpeg', 0.7);
-        currentPhotos[i] = compressed;
-        const img = document.createElement('img');
-        img.src = compressed;
-        grid.appendChild(img);
-        done++;
-        if (done === files.length) {
-          photosReady = true;
-          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '＋ 記録する'; }
-        }
-      };
-      image.src = original;
-    };
-    reader.readAsDataURL(file);
-  });
+
+  for (let i = 0; i < files.length; i++) {
+    const dataUrl = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = ev => resolve(ev.target.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(files[i]);
+    });
+    if (!dataUrl) continue;
+    const compressed = await compressImage(dataUrl);
+    currentPhotos[i] = compressed;
+    const img = document.createElement('img');
+    img.src = compressed;
+    grid.appendChild(img);
+  }
+
+  photosReady = true;
+  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '＋ 記録する'; }
 }
 
 function saveMeal() {
