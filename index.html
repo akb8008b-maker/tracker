@@ -1439,6 +1439,19 @@
     <div class="empty-icon">📝</div>
     <div class="empty-text">メモがありません</div>
   </div>
+
+  <!-- データ引き継ぎ -->
+  <div class="form-card" style="margin-top:24px">
+    <div class="section-title">📦 データの引き継ぎ</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">スマホ買い替え時はここからデータを書き出し・読み込みができます</p>
+    <div class="form-row" style="gap:10px">
+      <button class="btn btn-primary" onclick="exportData()" style="flex:1">⬇️ 書き出す</button>
+      <label class="btn" style="flex:1;background:var(--bg2);color:var(--accent);border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        ⬆️ 読み込む
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+      </label>
+    </div>
+  </div>
 </div>
 
 <!-- Meal Modal -->
@@ -1484,7 +1497,13 @@ const TARGET_WEIGHT_KEY = 'cptrk_targetWeight';
 const load = k => JSON.parse(localStorage.getItem(KEYS[k]) || '[]');
 function save(k, v) {
   localStorage.setItem(KEYS[k], JSON.stringify(v));
-  fsSet(k, { items: v });
+  // 写真データはFirestoreに送らない（容量制限のため）
+  if (k === 'meals') {
+    const noPhotos = v.map(m => { const x = {...m}; delete x.photos; delete x.photo; return x; });
+    fsSet(k, { items: noPhotos });
+  } else {
+    fsSet(k, { items: v });
+  }
 }
 
 // ─── Utils ─────────────────────────────────────────────
@@ -2744,6 +2763,52 @@ function renderMemoNotes() {
       </div>
       <div class="memo-content">${escHtml(m.content).replace(/\n/g,'<br>')}</div>
     </div>`).join('');
+}
+
+// ─── Export / Import ───────────────────────────────────
+function exportData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    meals:    load('meals'),
+    weights:  load('weights'),
+    training: load('training'),
+    cardio:   load('cardio'),
+    memos:    load('memos'),
+    targetWeight: localStorage.getItem(TARGET_WEIGHT_KEY),
+    competition:  localStorage.getItem('competition'),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tracker_backup_${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showFlash('データを書き出しました！');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.meals)    save('meals',    data.meals);
+      if (data.weights)  save('weights',  data.weights);
+      if (data.training) save('training', data.training);
+      if (data.cardio)   save('cardio',   data.cardio);
+      if (data.memos)    save('memos',    data.memos);
+      if (data.targetWeight) localStorage.setItem(TARGET_WEIGHT_KEY, data.targetWeight);
+      if (data.competition)  localStorage.setItem('competition', data.competition);
+      showFlash('データを読み込みました！');
+      setTimeout(() => location.reload(), 1000);
+    } catch(err) {
+      alert('ファイルが正しくありません');
+    }
+  };
+  reader.readAsText(file);
 }
 
 // ─── Init ──────────────────────────────────────────────
