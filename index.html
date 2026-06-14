@@ -1224,10 +1224,10 @@
     <div class="section-title">食事を記録</div>
     <div class="form-row">
       <label class="photo-upload-area" id="uploadArea">
-        <input type="file" accept="image/*" multiple id="mealPhoto" onchange="handlePhotoUpload(event)" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+        <input type="file" accept="image/*" id="mealPhoto" onchange="handlePhotoUpload(event)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer">
         <div id="uploadPlaceholder">
           <div class="upload-icon">📷</div>
-          <div class="upload-text">タップして写真を追加（最大4枚）</div>
+          <div class="upload-text">タップして写真を追加</div>
         </div>
         <div id="photoPreviewGrid" class="photo-preview-grid"></div>
       </label>
@@ -1808,7 +1808,7 @@ function compressImage(dataUrl) {
       const image = new Image();
       image.onload = () => {
         try {
-          const MAX = 600;
+          const MAX = 1920;
           let w = image.width, h = image.height;
           if (w > MAX || h > MAX) {
             if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
@@ -1817,7 +1817,7 @@ function compressImage(dataUrl) {
           const canvas = document.createElement('canvas');
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(image, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.65));
+          resolve(canvas.toDataURL('image/jpeg', 0.95));
         } catch(e) { resolve(dataUrl); }
       };
       image.onerror = () => resolve(dataUrl);
